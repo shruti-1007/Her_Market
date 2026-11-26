@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply m-0 bg-surface font-body text-on-surface antialiased;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@layer components {
+  .desktop-nav-link {
+    @apply flex min-h-[48px] shrink-0 items-center rounded-lg px-3 font-label text-label-lg text-on-surface transition-colors duration-state-change hover:bg-surface-container-low;
+  }
+
+  .hero-action {
+    @apply inline-flex min-h-[56px] cursor-pointer items-center justify-center gap-2 rounded-lg px-8 py-3 font-label text-label-lg shadow-md transition-colors duration-state-change ease-state-change hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+
+  .mobile-hero-action {
+    @apply inline-flex min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-6 py-3 font-label text-label-lg shadow-sm;
+  }
+
+  .footer-link {
+    @apply py-1 font-body text-body-md text-on-surface-variant hover:text-primary;
+  }
+
+  .material-symbols-outlined {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    overflow: hidden;
+    box-sizing: content-box;
+    direction: ltr;
+    white-space: nowrap;
+    line-height: 1 !important;
+    vertical-align: middle;
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1em;
+    letter-spacing: normal;
+    text-transform: none;
+    word-wrap: normal;
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+}
