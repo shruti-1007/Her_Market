@@ -2,6 +2,10 @@ const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
+const listingRoutes = require("./routes/listingRoutes");
+
+
 
 dotenv.config(); // load .env before requiring files that use process.env
 
@@ -27,8 +31,16 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+
 app.use("/api/auth", authRoutes);
 app.use("/api/example", exampleRoutes); // remove later
+
+
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// with the other routes, before the 404 handler:
+app.use("/api/listings", listingRoutes);
 
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
 
