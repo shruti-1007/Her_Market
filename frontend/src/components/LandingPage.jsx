@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const products = [
   {
@@ -172,6 +173,10 @@ function Icon({ children, className = '', filled = false }) {
   )
 }
 
+function AppLink({ href, ...props }) {
+  return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
+}
+
 function Brand({ compact = false }) {
   return (
     <a
@@ -252,19 +257,19 @@ function DesktopHeader() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <LanguageButton />
-          <a
-            href="#login"
+          <AppLink
+            href="/login"
             className="hidden min-h-[48px] shrink-0 items-center whitespace-nowrap rounded-lg px-3 font-label text-label-lg text-primary transition-colors duration-state-change hover:bg-primary-container xl:flex"
           >
             Login / Sign up
-          </a>
-          <button
-            type="button"
+          </AppLink>
+          <AppLink
+            href="/register"
             className="hidden min-h-[48px] shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-cta px-4 py-3 font-label text-label-lg text-on-cta shadow-sm transition-colors duration-state-change hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary xl:inline-flex"
           >
             <Icon>add_business</Icon>
             Sell Your Products
-          </button>
+          </AppLink>
         </div>
       </div>
     </header>
@@ -305,10 +310,11 @@ function MobileHeader() {
           ['business', 'My Business', 'calculate'],
           ['connect', 'Connect', 'diversity_3'],
           ['learn', 'Learn', 'menu_book'],
+          ['/login', 'Login / Sign up', 'login'],
         ].map(([href, label, icon], index) => (
-          <a
+          <AppLink
             key={href}
-            href={`#${href}`}
+            href={href.startsWith('/') ? href : `#${href}`}
             onClick={closeMenu}
             className={`flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg ${
               index === 0
@@ -318,16 +324,16 @@ function MobileHeader() {
           >
             <Icon>{icon}</Icon>
             {label}
-          </a>
+          </AppLink>
         ))}
-        <a
-          href="#login"
+        <AppLink
+          href="/register"
           onClick={closeMenu}
           className="mt-2 flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-cta px-4 font-label text-label-lg text-on-cta"
         >
           <Icon>add_business</Icon>
           Sell Your Products
-        </a>
+        </AppLink>
       </nav>
     </header>
   )
@@ -347,10 +353,10 @@ function DesktopHero() {
             learn step by step.
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <a href="#sell" className="hero-action bg-cta text-on-cta">
+            <AppLink href="/register" className="hero-action bg-cta text-on-cta">
               <Icon>storefront</Icon>
               I want to Sell
-            </a>
+            </AppLink>
             <a href="#shop" className="hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
               I want to Buy
@@ -397,10 +403,10 @@ function MobileHero() {
             with supportive women.
           </p>
           <div className="flex flex-col gap-3 pt-1">
-            <a href="#sell" className="mobile-hero-action bg-cta text-on-cta">
+            <AppLink href="/register" className="mobile-hero-action bg-cta text-on-cta">
               <Icon>storefront</Icon>
               I want to Sell
-            </a>
+            </AppLink>
             <a href="#shop" className="mobile-hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
               I want to Buy
@@ -884,14 +890,14 @@ function DesktopFooter() {
               ['#instagram', 'HerMarket on Instagram', 'photo_camera'],
               ['#youtube', 'HerMarket Video Guides', 'play_circle'],
             ].map(([href, label, icon]) => (
-              <a
+              <AppLink
                 key={href}
                 href={href}
                 aria-label={label}
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-primary-container"
               >
                 <Icon>{icon}</Icon>
-              </a>
+              </AppLink>
             ))}
           </div>
         </div>
@@ -926,7 +932,7 @@ function MobileBottomNavigation() {
   const links = [
     ['#home', 'Home', 'home', true],
     ['#shop', 'Shop', 'shopping_bag'],
-    ['#sell', 'Sell', 'add_circle', true],
+    ['/register', 'Sell', 'add_circle', true],
     ['#connect', 'Connect', 'diversity_3'],
     ['#learn', 'Learn', 'menu_book'],
   ]
