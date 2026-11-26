@@ -12,6 +12,7 @@ dotenv.config(); // load .env before requiring files that use process.env
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const exampleRoutes = require("./routes/exampleRoutes");
+const inquiryRoutes = require("./routes/inquiryRoutes");
 
 console.log("Mongo URI exists:", !!process.env.MONGO_URI);
 
@@ -41,6 +42,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // with the other routes, before the 404 handler:
 app.use("/api/listings", listingRoutes);
+app.use("/api/inquiries", inquiryRoutes);
 
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
 

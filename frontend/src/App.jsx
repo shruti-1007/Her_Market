@@ -10,6 +10,7 @@ import { useAuth } from './context/useAuth.js'
 import AuthPage from './components/AuthPage.jsx'
 import DashboardPage from './components/DashboardPage.jsx'
 import LandingPage from './components/LandingPage.jsx'
+import ListingDetailPage from './components/ListingDetailPage.jsx'
 
 function PageStatus({ title, message, action }) {
   return (
@@ -85,6 +86,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/listings/:id" element={<ListingDetailPage />} />
       <Route
         path="/login"
         element={
