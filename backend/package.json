@@ -15,7 +15,13 @@
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
+<<<<<<< Updated upstream
     "mongoose": "^9.13.1"
+=======
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.13.1",
+    "multer": "^2.5.0"
+>>>>>>> Stashed changes
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

@@ -1,4 +1,11 @@
 express
 dotenv
 mongoose
+<<<<<<< Updated upstream
 npm install -D nodemon
+=======
+npm install -D nodemon
+npm install bcryptjs jsonwebtoken
+
+npm install multer
+>>>>>>> Stashed changes

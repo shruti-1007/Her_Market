@@ -1,3 +1,11 @@
+const express = require("express");
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const path = require("path");
+const listingRoutes = require("./routes/listingRoutes");
+
+
 
 import express from "express";
 import dotenv from "dotenv";
@@ -23,6 +31,20 @@ app.get("/api/health", (req, res) => {
     });
 });
 
+<<<<<<< Updated upstream
+=======
+app.use("/api/auth", authRoutes);
+app.use("/api/example", exampleRoutes); // remove later
+
+// after app.use(cors()):
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// with the other routes, before the 404 handler:
+app.use("/api/listings", listingRoutes);
+
+app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
+
+>>>>>>> Stashed changes
 // Connect database and start server
 const startServer = async () => {
     await connectDB();
