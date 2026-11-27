@@ -1,5 +1,52 @@
 const mongoose = require("mongoose");
 
+const pricingMaterialSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    method: { type: String, enum: ["all", "half", "used", "estimated", "exact"], required: true },
+    costSource: { type: String, enum: ["seller", "ai"], default: "seller" },
+    purchaseCostNpr: { type: Number, min: 0 },
+    usedCostNpr: { type: Number, min: 0 },
+    estimatedCostNpr: { type: Number, min: 0 },
+    totalQuantity: { type: Number, min: 0 },
+    quantityUsed: { type: Number, min: 0 },
+    usedQuantityDescription: { type: String, trim: true, maxlength: 100, default: "" },
+    unit: { type: String, trim: true, maxlength: 30, default: "" },
+    costNpr: { type: Number, min: 0, required: true },
+  },
+  { _id: false },
+);
+
+const pricingExpenseSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    amountNpr: { type: Number, min: 0, required: true },
+  },
+  { _id: false },
+);
+
+const pricingSchema = new mongoose.Schema(
+  {
+    materials: { type: [pricingMaterialSchema], default: [] },
+    expenses: { type: [pricingExpenseSchema], default: [] },
+    materialsConfirmed: { type: Boolean, required: true },
+    expensesConfirmed: { type: Boolean, required: true },
+    minutesSpent: { type: Number, min: 0 },
+    timeEstimated: { type: Boolean, default: false },
+    hourlyRateNpr: { type: Number, min: 0, required: true },
+    profitMarginPercent: { type: Number, min: 0, max: 200, required: true },
+    materialsCostNpr: { type: Number, min: 0, required: true },
+    additionalExpensesCostNpr: { type: Number, min: 0, required: true },
+    labourCostNpr: { type: Number, min: 0, required: true },
+    totalCostNpr: { type: Number, min: 0, required: true },
+    profitAmountNpr: { type: Number, min: 0, required: true },
+    suggestedPriceNpr: { type: Number, min: 0, required: true },
+    finalDecision: { type: String, enum: ["accepted", "changed"], required: true },
+    complete: { type: Boolean, required: true },
+  },
+  { _id: false },
+);
+
 const listingSchema = new mongoose.Schema(
   {
     title: {
@@ -33,6 +80,7 @@ const listingSchema = new mongoose.Schema(
       required: [true, "Price is required"],
       min: [0, "Price cannot be negative"],
     },
+    pricing: { type: pricingSchema, default: undefined },
     image: { type: String, default: "" }, // e.g. "/uploads/1732600000-123.jpg"
     location: { type: String, trim: true, default: "" },
     availability: {

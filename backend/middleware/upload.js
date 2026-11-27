@@ -17,6 +17,11 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 // Accepts one file in the form field "image". Returns clean JSON on upload errors.
 exports.uploadImage = (req, res, next) => {
@@ -30,6 +35,18 @@ exports.uploadImages = (req, res, next) => {
   upload.array("images", 4)(req, res, (err) => {
     if (err) {
       const message = err.code === "LIMIT_UNEXPECTED_FILE" ? "You can upload up to 4 images" : err.message;
+      return res.status(400).json({ success: false, message });
+    }
+    next();
+  });
+};
+
+exports.uploadPricingImage = (req, res, next) => {
+  memoryUpload.single("image")(req, res, (err) => {
+    if (err) {
+      const message = err.code === "LIMIT_FILE_SIZE"
+        ? "Photo must be 5 MB or smaller"
+        : err.message;
       return res.status(400).json({ success: false, message });
     }
     next();
