@@ -110,7 +110,14 @@ export default function SellerListings() {
               <p className="font-body text-body-md capitalize text-on-surface-variant">
                 {l.category} · {l.location || 'No location'}
               </p>
-              <p className="font-headline text-title-md text-primary">{formatPrice(l.price)}</p>
+              <p className="font-headline text-title-md text-primary">
+                {formatPrice(l.price)}
+                {l.packSize && (
+                  <span className="ml-2 font-body text-body-md text-on-surface-variant">
+                    per {l.packSize}
+                  </span>
+                )}
+              </p>
             </div>
             <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1 xl:justify-end">
               <button type="button" className={smallBtn} onClick={() => setEditing(l)}>Edit</button>

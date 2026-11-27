@@ -80,6 +80,7 @@ const listingSchema = new mongoose.Schema(
       required: [true, "Price is required"],
       min: [0, "Price cannot be negative"],
     },
+    packSize: { type: String, trim: true, maxlength: 60, default: "" },
     pricing: { type: pricingSchema, default: undefined },
     image: { type: String, default: "" }, // e.g. "/uploads/1732600000-123.jpg"
     location: { type: String, trim: true, default: "" },

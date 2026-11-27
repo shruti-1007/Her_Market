@@ -44,53 +44,67 @@ export default function SellerInquiries() {
         </div>
       )}
 
-      {inquiries.map((i) => (
-        <article key={i._id} className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-label text-label-md uppercase tracking-wide text-primary">Product inquiry</p>
-              <h3 className="mt-1 font-headline text-title-md text-on-surface">
-              {i.listing?.title || 'Listing removed'}
-              {i.listing && <span className="ml-2 text-primary">{formatPrice(i.listing.price)}</span>}
-              </h3>
+      {inquiries.map((i) => {
+        const packSize = i.packSize || i.listing?.packSize || 'item'
+        const unitPrice = i.unitPriceNpr ?? i.listing?.price
+        const estimatedTotal = i.estimatedTotalNpr ??
+          (unitPrice === undefined ? null : unitPrice * i.quantity)
+
+        return (
+          <article key={i._id} className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-label text-label-md uppercase tracking-wide text-primary">Product inquiry</p>
+                <h3 className="mt-1 font-headline text-title-md text-on-surface">
+                  {i.listing?.title || 'Listing removed'}
+                </h3>
+                {unitPrice !== undefined && (
+                  <p className="mt-1 font-label text-label-md text-primary">
+                    {formatPrice(unitPrice)} per {packSize}
+                  </p>
+                )}
+              </div>
+              <StatusBadge value={i.status} />
             </div>
-            <StatusBadge value={i.status} />
-          </div>
-          <blockquote className="rounded-xl bg-surface-container-low px-4 py-3 font-body text-body-md text-on-surface">
-            “{i.message}”
-          </blockquote>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-body-md text-on-surface-variant">
-            <span>Quantity: {i.quantity}</span>
-            <span>From {i.customer?.name}</span>
-            {i.status === 'accepted' && i.customer && (
-              <>
-                <span>{i.customer.contact || 'No phone provided'}</span>
-                <span className="break-all">{i.customer.email}</span>
-              </>
+            <blockquote className="rounded-xl bg-surface-container-low px-4 py-3 font-body text-body-md text-on-surface">
+              “{i.message}”
+            </blockquote>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-body-md text-on-surface-variant">
+              <span>Requested: {i.quantity} × {packSize}</span>
+              {Number.isFinite(estimatedTotal) && (
+                <span>Estimated total: {formatPrice(estimatedTotal)} (seller confirms)</span>
+              )}
+              <span>From {i.customer?.name}</span>
+              {i.status === 'accepted' && i.customer && (
+                <>
+                  <span>{i.customer.contact || 'No phone provided'}</span>
+                  <span className="break-all">{i.customer.email}</span>
+                </>
+              )}
+            </div>
+            {i.status === 'pending' && (
+              <div className="flex flex-wrap gap-3 border-t border-outline-variant pt-4">
+                <button
+                  type="button"
+                  disabled={busyId === i._id}
+                  onClick={() => decide(i._id, 'accepted')}
+                  className="min-h-11 rounded-lg bg-primary px-5 font-label text-label-md text-on-primary shadow-sm transition-colors hover:opacity-90 disabled:opacity-70"
+                >
+                  Accept
+                </button>
+                <button
+                  type="button"
+                  disabled={busyId === i._id}
+                  onClick={() => decide(i._id, 'rejected')}
+                  className="min-h-11 rounded-lg border border-outline-variant px-5 font-label text-label-md text-error transition-colors hover:bg-red-50 disabled:opacity-70"
+                >
+                  Reject
+                </button>
+              </div>
             )}
-          </div>
-          {i.status === 'pending' && (
-            <div className="flex flex-wrap gap-3 border-t border-outline-variant pt-4">
-              <button
-                type="button"
-                disabled={busyId === i._id}
-                onClick={() => decide(i._id, 'accepted')}
-                className="min-h-11 rounded-lg bg-primary px-5 font-label text-label-md text-on-primary shadow-sm transition-colors hover:opacity-90 disabled:opacity-70"
-              >
-                Accept
-              </button>
-              <button
-                type="button"
-                disabled={busyId === i._id}
-                onClick={() => decide(i._id, 'rejected')}
-                className="min-h-11 rounded-lg border border-outline-variant px-5 font-label text-label-md text-error transition-colors hover:bg-red-50 disabled:opacity-70"
-              >
-                Reject
-              </button>
-            </div>
-          )}
-        </article>
-      ))}
+          </article>
+        )
+      })}
     </section>
   )
 }

@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom'
+
 import { ProductCard } from './ProductCatalog.jsx'
 import useListings from './useListings.js'
 import { Brand, Icon, LanguageButton } from './SiteNavigation.jsx'
+
+import { getListings } from '../api/listings.js'
+import { getEvents } from '../api/events.js'
+import { errorMessage } from '../api/errors.js'
+import { EVENT_CATEGORIES, formatEventWhen, formatPrice, labelOf } from '../constants.js'
+import { useAuth } from '../context/useAuth.js'
+import ListingImage from './ListingImage.jsx'
+
 
 const modules = [
   {
@@ -124,6 +133,73 @@ function AppLink({ href, ...props }) {
 }
 
 /* ---------- Real listings from the backend ---------- */
+
+
+function useListings(limit) {
+  const [state, setState] = useState({ loading: true, error: '', listings: [] })
+
+  useEffect(() => {
+    let active = true
+    getListings({ limit })
+      .then((d) => active && setState({ loading: false, error: '', listings: d.listings }))
+      .catch((e) => active && setState({ loading: false, error: errorMessage(e), listings: [] }))
+    return () => {
+      active = false
+    }
+  }, [limit])
+
+  return state
+}
+
+function useUpcomingEvent() {
+  const [state, setState] = useState({ event: null, error: '' })
+
+  useEffect(() => {
+    let active = true
+    getEvents({ limit: 1 })
+      .then((result) => {
+        if (active) setState({ event: result.events?.[0] || null, error: '' })
+      })
+      .catch((err) => {
+        if (active) setState({ event: null, error: errorMessage(err) })
+      })
+    return () => { active = false }
+  }, [])
+
+  return state
+}
+
+function ProductCard({ listing }) {
+  return (
+    <article className="flex h-full flex-col justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+      <div className="flex flex-col gap-3">
+        <ListingImage src={listing.image} alt={listing.title} className="h-48 w-full rounded-md" />
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-headline text-title-md text-on-surface">{listing.title}</h3>
+          <span className="shrink-0 font-headline text-title-md tabular-nums text-primary">
+            {formatPrice(listing.price)}
+            {listing.packSize && (
+              <span className="block text-right font-body text-sm text-on-surface-variant">
+                per {listing.packSize}
+              </span>
+            )}
+          </span>
+        </div>
+        <p className="font-body text-body-md text-on-surface-variant">
+          By {listing.seller?.name} · {listing.location || listing.seller?.location}
+        </p>
+      </div>
+      <Link
+        to={`/listings/${listing._id}`}
+        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
+      >
+        <Icon>visibility</Icon>
+        View Product
+      </Link>
+    </article>
+  )
+}
+
 
 function ProductGrid({ state, className }) {
   if (state.loading)
@@ -496,7 +572,19 @@ function StoriesSection() {
   )
 }
 
-function EventBanner({ mobile = false }) {
+function EventBanner({ event, error, mobile = false }) {
+  if (!event) {
+    return (
+      <section id={mobile ? undefined : 'connect'} className={mobile ? 'px-4' : 'bg-surface py-12'}>
+        <div className={`rounded-lg border border-outline-variant bg-surface-container-lowest p-5 font-body text-body-md text-on-surface-variant ${mobile ? '' : 'mx-auto max-w-[1200px]'}`}>
+          {error ? 'Upcoming events are unavailable right now.' : 'No upcoming events have been posted yet.'}{' '}
+          <AppLink href="/events" className="font-label text-primary underline">Browse all events</AppLink>
+        </div>
+      </section>
+    )
+  }
+  const summary = event.description?.trim().slice(0, 240)
+
   return (
     <section
       id={mobile ? undefined : 'connect'}
@@ -522,14 +610,16 @@ function EventBanner({ mobile = false }) {
               <h2
                 className={`font-headline ${mobile ? 'text-title-lg' : 'text-headline-md'}`}
               >
-                {mobile
-                  ? 'Local Craft Fair · Dec 6'
-                  : "Weekend Women's Craft Fair — Dec 6"}
+                {event.title}
               </h2>
+              <p className="font-label text-label-md">
+                {formatEventWhen(event.startDate, event.endDate)}
+                {' · '}
+                {labelOf(EVENT_CATEGORIES, event.category)}
+              </p>
               {!mobile && (
                 <p className="text-pretty font-body text-body-lg">
-                  Meet 40+ local makers at Patan Community Courtyard (10:00 AM –
-                  5:00 PM). Free stall tables for first-time sellers!
+                  {summary || (event.isOnline ? 'Join this upcoming online event.' : `Join us at ${event.location}.`)}
                 </p>
               )}
             </div>
@@ -537,22 +627,22 @@ function EventBanner({ mobile = false }) {
           {mobile ? (
             <>
               <p className="font-body text-body-md">
-                Patan Community Courtyard · Free tables for first-time sellers!
+                {event.isOnline ? 'Online event' : event.location}
               </p>
               <AppLink
-                href="/events"
+                href={`/events/${event._id}`}
                 className="flex min-h-[48px] w-full items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest font-label text-label-lg text-on-surface"
               >
-                See Local Events
+                View event
               </AppLink>
             </>
           ) : (
             <AppLink
-              href="/events"
+              href={`/events/${event._id}`}
               className="inline-flex min-h-[52px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-6 py-3 font-label text-label-lg text-on-surface shadow-sm transition-colors duration-state-change hover:bg-surface-container-low"
             >
               <Icon>calendar_month</Icon>
-              See Local Events
+              View event
             </AppLink>
           )}
         </div>
@@ -561,6 +651,81 @@ function EventBanner({ mobile = false }) {
   )
 }
 
+function EventPopup({ event, onClose }) {
+  useEffect(() => {
+    const closeOnEscape = (keyboardEvent) => {
+      if (keyboardEvent.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/50 p-4"
+      onMouseDown={(mouseEvent) => {
+        if (mouseEvent.target === mouseEvent.currentTarget) onClose()
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="home-event-title"
+        aria-describedby="home-event-description"
+        className="relative w-full max-w-lg rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl sm:p-7"
+      >
+        <button
+          type="button"
+          autoFocus
+          onClick={onClose}
+          aria-label="Close event announcement"
+          className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-on-surface hover:bg-surface-container-low"
+        >
+          <Icon>close</Icon>
+        </button>
+        <div className="flex items-center gap-3 pr-12">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary text-on-secondary">
+            <Icon className="text-headline-sm">event</Icon>
+          </span>
+          <span className="rounded-full bg-secondary-container px-3 py-1 font-label text-label-md text-on-secondary-container">
+            Upcoming event
+          </span>
+        </div>
+        <h2 id="home-event-title" className="mt-5 font-headline text-headline-md text-on-surface">
+          {event.title}
+        </h2>
+        <p className="mt-2 font-label text-label-md text-primary">
+          {formatEventWhen(event.startDate, event.endDate)}
+          {' · '}
+          {labelOf(EVENT_CATEGORIES, event.category)}
+        </p>
+        <p className="mt-2 font-body text-body-md text-on-surface-variant">
+          {event.isOnline ? 'Online event' : event.location}
+          {event.organizer?.name ? ` · Hosted by ${event.organizer.name}` : ''}
+        </p>
+        <p id="home-event-description" className="mt-4 font-body text-body-md text-on-surface">
+          {event.description || 'Open the event page for details and registration information.'}
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link
+            to={`/events/${event._id}`}
+            onClick={onClose}
+            className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-primary px-5 font-label text-label-md text-on-primary"
+          >
+            View event details
+          </Link>
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-12 rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary"
+          >
+            Maybe later
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
 function OrganizationBanner() {
   return (
     <section className="bg-primary py-16 text-on-primary">
@@ -671,7 +836,7 @@ function HelpButton({ mobile = false }) {
 
 /* ---------- Pages ---------- */
 
-function DesktopPage() {
+function DesktopPage({ event, eventError }) {
   return (
     <div className="hidden min-h-screen flex-col pb-24 lg:flex">
       <main className="flex-1">
@@ -681,7 +846,7 @@ function DesktopPage() {
         <DesktopProducts />
         <MakersSection />
         <StoriesSection />
-        <EventBanner />
+        <EventBanner event={event} error={eventError} />
         <OrganizationBanner />
       </main>
       <DesktopFooter />
@@ -690,14 +855,14 @@ function DesktopPage() {
   )
 }
 
-function MobilePage() {
+function MobilePage({ event, eventError }) {
   return (
     <div className="flex min-h-screen flex-col pb-24 lg:hidden">
       <main className="flex flex-1 flex-col gap-10">
         <MobileHero />
         <ModulesSection mobile />
         <MobileProducts />
-        <EventBanner mobile />
+        <EventBanner event={event} error={eventError} mobile />
       </main>
       <HelpButton mobile />
     </div>
@@ -705,10 +870,20 @@ function MobilePage() {
 }
 
 function LandingPage() {
+  const { event, error } = useUpcomingEvent()
+  const [popupDismissed, setPopupDismissed] = useState(false)
+  const showPopup = Boolean(event && !popupDismissed)
+
   return (
     <>
-      <DesktopPage />
-      <MobilePage />
+      <DesktopPage event={event} eventError={error} />
+      <MobilePage event={event} eventError={error} />
+      {showPopup && event && (
+        <EventPopup
+          event={event}
+          onClose={() => setPopupDismissed(true)}
+        />
+      )}
     </>
   )
 }

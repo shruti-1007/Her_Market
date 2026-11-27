@@ -20,6 +20,7 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(listing?.image ? imageUrl(listing.image) : '')
   const [price, setPrice] = useState(listing?.price ?? '')
+  const [packSize, setPackSize] = useState(listing?.packSize || '')
   const [priceMethod, setPriceMethod] = useState(listing ? 'manual' : null)
   const [pricingInfo, setPricingInfo] = useState(null)
   const imageInput = useRef(null)
@@ -188,7 +189,21 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
 
       {showPrice && (
         <div className="flex flex-col gap-2">
-          <Label text="Selling price (NPR)">
+          <Label text="What amount does this price cover? (optional)">
+            <input
+              name="packSize"
+              type="text"
+              maxLength={60}
+              value={packSize}
+              onChange={(event) => setPackSize(event.target.value)}
+              placeholder="For example: 500 g jar, 250 ml bottle, pack of 3"
+              className={inputClass}
+            />
+          </Label>
+          <p className="font-body text-sm text-on-surface-variant">
+            Leave this empty if the price is for one item. Buyers can choose how many packs they want.
+          </p>
+          <Label text={`Selling price (NPR) per ${packSize.trim() || 'item'}`}>
             <input
               name="price"
               type="number"
@@ -232,7 +247,7 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
       <div className="flex flex-wrap gap-3 border-t border-outline-variant pt-5">
         <button
           type="submit"
-          disabled={saving}
+          disabled={!canSubmit}
           className="min-h-11 rounded-lg bg-primary px-5 font-label text-label-md text-on-primary shadow-sm transition-colors hover:opacity-90 disabled:opacity-70"
         >
           {saving ? 'Saving...' : listing ? 'Save changes' : 'Publish listing'}

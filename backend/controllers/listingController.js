@@ -47,13 +47,14 @@ const validatePricing = (input, price) => {
 exports.createListing = async (req, res) => {
   const image = req.file ? `/uploads/${req.file.filename}` : "";
   try {
-    const { title, description, type, category, price, location, availability } = req.body;
+    const { title, description, type, category, price, packSize, location, availability } = req.body;
     const seller = await User.findById(req.user.id);
     const pricingInput = parsePricing(req.body.pricing);
     const pricing = pricingInput ? validatePricing(pricingInput, price) : undefined;
 
     const listing = await Listing.create({
       title, description, type, category, price, availability,
+      packSize,
       location: location || seller.location,
       image,
       pricing,
@@ -156,7 +157,7 @@ exports.updateListing = async (req, res) => {
     }
 
     // Whitelist: seller and timestamps can never be changed from the request
-    ["title", "description", "type", "category", "price", "location", "availability"].forEach((f) => {
+    ["title", "description", "type", "category", "price", "packSize", "location", "availability"].forEach((f) => {
       if (req.body[f] !== undefined) listing[f] = req.body[f];
     });
     const pricingInput = parsePricing(req.body.pricing);

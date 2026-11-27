@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCustomerInquiries } from '../../api/inquiries.js'
 import { errorMessage } from '../../api/errors.js'
+import { formatPrice } from '../../constants.js'
 import StatusBadge from './StatusBadge.jsx'
 
 export default function CustomerInquiries() {
@@ -29,25 +30,34 @@ export default function CustomerInquiries() {
         </p>
       )}
 
-      {inquiries.map((i) => (
-        <article key={i._id} className="flex flex-col gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {i.listing ? (
-              <Link to={`/listings/${i.listing._id}`} className="font-headline text-title-md text-primary hover:underline">
-                {i.listing.title}
-              </Link>
-            ) : (
-              <span className="font-headline text-title-md text-on-surface">Listing removed</span>
-            )}
-            <StatusBadge value={i.status} />
-          </div>
-          <p className="font-body text-body-md text-on-surface">“{i.message}”</p>
-          <p className="font-body text-body-md text-on-surface-variant">
-            Quantity: {i.quantity} · Seller: {i.seller?.name}
-            {i.status === 'accepted' && i.seller?.contact && <> · Call {i.seller.contact}</>}
-          </p>
-        </article>
-      ))}
+      {inquiries.map((i) => {
+        const packSize = i.packSize || i.listing?.packSize || 'item'
+        const unitPrice = i.unitPriceNpr ?? i.listing?.price
+        const estimatedTotal = i.estimatedTotalNpr ??
+          (unitPrice === undefined ? null : unitPrice * i.quantity)
+
+        return (
+          <article key={i._id} className="flex flex-col gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {i.listing ? (
+                <Link to={`/listings/${i.listing._id}`} className="font-headline text-title-md text-primary hover:underline">
+                  {i.listing.title}
+                </Link>
+              ) : (
+                <span className="font-headline text-title-md text-on-surface">Listing removed</span>
+              )}
+              <StatusBadge value={i.status} />
+            </div>
+            <p className="font-body text-body-md text-on-surface">“{i.message}”</p>
+            <p className="font-body text-body-md text-on-surface-variant">
+              Requested: {i.quantity} × {packSize}
+              {Number.isFinite(estimatedTotal) && <> · Estimated total: {formatPrice(estimatedTotal)} (seller confirms)</>}
+              {' · '}Seller: {i.seller?.name}
+              {i.status === 'accepted' && i.seller?.contact && <> · Call {i.seller.contact}</>}
+            </p>
+          </article>
+        )
+      })}
     </section>
   )
 }
