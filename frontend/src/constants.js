@@ -8,3 +8,36 @@ export const formatPrice = (n) => `Rs ${Number(n).toLocaleString('en-IN')}`
 
 export const inputClass =
   'min-h-[48px] w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 font-body text-body-md text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
+
+  export const EVENT_CATEGORIES = [
+  ['workshop', 'Workshop'], ['training', 'Training'], ['fair', 'Fair / Market'],
+  ['funding', 'Funding & Loans'], ['awareness', 'Awareness'], ['health', 'Health'], ['other', 'Other'],
+]
+
+export const ORG_TYPES = [
+  ['ward_office', 'Ward office'], ['municipality', 'Municipality'],
+  ['ngo', 'NGO'], ['cooperative', 'Cooperative'], ['other', 'Other'],
+]
+
+export const labelOf = (list, value) => list.find(([v]) => v === value)?.[1] || value
+
+const dateFmt = { day: 'numeric', month: 'short', year: 'numeric' }
+const timeFmt = { hour: 'numeric', minute: '2-digit' }
+
+export function formatEventWhen(start, end) {
+  const s = new Date(start)
+  const first = `${s.toLocaleDateString('en-GB', dateFmt)}, ${s.toLocaleTimeString('en-GB', timeFmt)}`
+  if (!end) return first
+  const e = new Date(end)
+  return s.toDateString() === e.toDateString()
+    ? `${first} – ${e.toLocaleTimeString('en-GB', timeFmt)}`
+    : `${first} → ${e.toLocaleDateString('en-GB', dateFmt)}, ${e.toLocaleTimeString('en-GB', timeFmt)}`
+}
+
+// ISO string -> value for <input type="datetime-local">
+export function toInputValue(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}

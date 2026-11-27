@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Organization = require("../models/Organization");
+const ORG_TYPES = ["ward_office", "municipality", "ngo", "cooperative", "other"];
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,41 +20,53 @@ const publicUser = (u) => ({
 // POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role, location, description, contact } = req.body;
+    const { name, email, password, role, location, description, contact, organizationType, website } = req.body;
 
-    // Validation
     const errors = [];
     if (!name || !name.trim()) errors.push("Name is required");
     if (!email || !emailRegex.test(email)) errors.push("A valid email is required");
     if (!password || password.length < 8) errors.push("Password must be at least 8 characters");
-    if (role && !["seller", "customer"].includes(role)) errors.push("Role must be 'seller' or 'customer'");
-    if (role === "seller" && (!location || !contact))
-      errors.push("Sellers must provide location and contact");
+    if (role && !["seller", "customer", "organization"].includes(role))
+      errors.push("Role must be 'seller', 'customer' or 'organization'");
+    if ((role === "seller" || role === "organization") && (!location || !contact))
+      errors.push("Sellers and organizations must provide location and contact");
+    if (role === "organization") {
+      if (!ORG_TYPES.includes(organizationType)) errors.push("A valid organization type is required");
+      if (!description || description.trim().length < 10)
+        errors.push("Organization description must be at least 10 characters");
+      if (website && !/^https?:\/\/.+/i.test(website))
+        errors.push("Website must start with http:// or https://");
+    }
     if (errors.length) return res.status(400).json({ success: false, message: "Validation failed", errors });
 
-    // Duplicate check
     const exists = await User.findOne({ email: email.toLowerCase() });
     if (exists) return res.status(409).json({ success: false, message: "Email already registered" });
 
-    // Hash + save
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      name, email, password: hashed, role, location, description, contact,
-    });
+    const user = await User.create({ name, email, password: hashed, role, location, description, contact });
+
+    if (role === "organization") {
+      try {
+        await Organization.create({ user: user._id, type: organizationType, website: website || "" });
+      } catch (e) {
+        await User.findByIdAndDelete(user._id); // don't leave an organization user without a profile
+        throw e;
+      }
+    }
 
     res.status(201).json({
       success: true,
-      message: "Registration successful",
+      message: role === "organization"
+        ? "Registration successful. Your organization is pending verification."
+        : "Registration successful",
       user: publicUser(user),
     });
   } catch (err) {
-    if (err.code === 11000)
-      return res.status(409).json({ success: false, message: "Email already registered" });
+    if (err.code === 11000) return res.status(409).json({ success: false, message: "Email already registered" });
     console.error(err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 // POST /api/auth/login
 exports.login = async (req, res) => {
   try {

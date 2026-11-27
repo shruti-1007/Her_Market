@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
   password: { type: String, required: true, select: false }, // hidden from queries by default
-  role: { type: String, enum: ["seller", "customer"], default: "customer" },
+  role: { type: String, enum: ["seller", "customer", "organization", "admin"], default: "customer" },
   location: { type: String, trim: true, default: "" },
   description: { type: String, trim: true, default: "" },
   contact: { type: String, trim: true, default: "" },
