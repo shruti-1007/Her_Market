@@ -5,11 +5,13 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { useAuth } from './context/useAuth.js'
 import AuthPage from './components/AuthPage.jsx'
 import DashboardPage from './components/DashboardPage.jsx'
 import LandingPage from './components/LandingPage.jsx'
+import Shop from './components/Shop.jsx'
 import ListingDetailPage from './components/ListingDetailPage.jsx'
 import SellerProfilePage from './components/SellerProfilePage.jsx'
 import EventsPage from './components/events/EventPages.jsx'
@@ -85,40 +87,54 @@ function ProtectedRoute({ children }) {
   return children
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+
+  return null
+}
+
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/events" element={<EventsPage />} />
-      <Route path="/events/:id" element={<EventDetailPage />} />
-      <Route path="/sellers/:sellerId" element={<SellerProfilePage />} />
-      <Route path="/listings/:id" element={<ListingDetailPage />} />
-      <Route
-        path="/login"
-        element={
-          <PublicOnlyRoute>
-            <AuthPage mode="login" />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicOnlyRoute>
-            <AuthPage mode="register" />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/listings/:id" element={<ListingDetailPage />} />
+        <Route path="/sellers/:sellerId" element={<SellerProfilePage />} />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <AuthPage mode="login" />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <AuthPage mode="register" />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 

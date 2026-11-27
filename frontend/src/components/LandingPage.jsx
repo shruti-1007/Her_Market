@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getListings } from '../api/listings.js'
-import { errorMessage } from '../api/errors.js'
-import { formatPrice } from '../constants.js'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
-import ListingImage from './ListingImage.jsx'
+import { ProductCard } from './ProductCatalog.jsx'
+import useListings from './useListings.js'
+import {
+  Brand,
+  Icon,
+  LanguageButton,
+  MobileBottomNavigation,
+} from './SiteNavigation.jsx'
 
 const modules = [
   {
@@ -121,18 +125,6 @@ const stories = [
     alt: 'Radha and her neighbor packing handmade crafts together',
   },
 ]
-
-function Icon({ children, className = '', filled = false }) {
-  return (
-    <span
-      className={`material-symbols-outlined ${className}`}
-      style={filled ? { fontVariationSettings: "'FILL' 1" } : undefined}
-      aria-hidden="true"
-    >
-      {children}
-    </span>
-  )
-}
 
 function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
@@ -254,48 +246,6 @@ function AccountMenu({ mobile = false }) {
 
 /* ---------- Real listings from the backend ---------- */
 
-function useListings(limit) {
-  const [state, setState] = useState({ loading: true, error: '', listings: [] })
-
-  useEffect(() => {
-    let active = true
-    getListings({ limit })
-      .then((d) => active && setState({ loading: false, error: '', listings: d.listings }))
-      .catch((e) => active && setState({ loading: false, error: errorMessage(e), listings: [] }))
-    return () => {
-      active = false
-    }
-  }, [limit])
-
-  return state
-}
-
-function ProductCard({ listing }) {
-  return (
-    <article className="flex h-full flex-col justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
-      <div className="flex flex-col gap-3">
-        <ListingImage src={listing.image} alt={listing.title} className="h-48 w-full rounded-md" />
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-headline text-title-md text-on-surface">{listing.title}</h3>
-          <span className="shrink-0 font-headline text-title-md tabular-nums text-primary">
-            {formatPrice(listing.price)}
-          </span>
-        </div>
-        <p className="font-body text-body-md text-on-surface-variant">
-          By {listing.seller?.name} · {listing.location || listing.seller?.location}
-        </p>
-      </div>
-      <Link
-        to={`/listings/${listing._id}`}
-        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
-      >
-        <Icon>visibility</Icon>
-        View Product
-      </Link>
-    </article>
-  )
-}
-
 function ProductGrid({ state, className }) {
   if (state.loading)
     return <p className="font-body text-body-md text-on-surface-variant">Loading products...</p>
@@ -356,63 +306,33 @@ function MobileProducts() {
 
 /* ---------- Layout pieces ---------- */
 
-function Brand({ compact = false }) {
-  return (
-    <a
-      href="#home"
-      className={`flex items-center ${compact ? 'gap-2' : 'gap-3'} shrink-0 rounded-lg`}
-    >
-      <span
-        className={`flex items-center justify-center rounded-lg bg-primary text-on-primary ${
-          compact ? 'h-10 w-10' : 'h-11 w-11 shadow-sm'
-        }`}
-      >
-        <Icon className={compact ? '' : 'text-headline-sm'}>storefront</Icon>
-      </span>
-      <span className="font-headline text-title-lg text-primary">HerMarket</span>
-    </a>
-  )
-}
-
-function LanguageButton({ mobile = false }) {
-  const [language, setLanguage] = useState('EN / नेपाली')
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        setLanguage((current) =>
-          current.includes('EN') ? 'नेपाली / EN' : 'EN / नेपाली',
-        )
-      }
-      aria-label="Switch language between English and Nepali"
-      className={`flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface ${
-        mobile
-          ? 'min-h-[44px] px-3 font-label text-label-md'
-          : 'min-h-[48px] px-3 font-label text-label-md transition-colors duration-state-change hover:bg-surface-container-low'
-      }`}
-    >
-      <Icon className="text-title-md">translate</Icon>
-      <span>{mobile ? 'EN' : language}</span>
-    </button>
-  )
-}
-
 function DesktopHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest shadow-sm">
       <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
         <Brand />
         <nav aria-label="Main navigation" className="hidden shrink-0 items-center gap-1 lg:flex">
-          <a
-            href="#home"
-            className="flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container"
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              isActive
+                ? 'flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container'
+                : 'desktop-nav-link'
+            }
           >
             Home
-          </a>
-          <a href="#shop" className="desktop-nav-link">
+          </NavLink>
+          <NavLink
+            to="/shop"
+            className={({ isActive }) =>
+              isActive
+                ? 'flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container'
+                : 'desktop-nav-link'
+            }
+          >
             Shop
-          </a>
+          </NavLink>
          
         
           <AppLink href="/events" className="desktop-nav-link">
@@ -480,23 +400,26 @@ function MobileHeader() {
         } flex-col gap-2 border-t border-outline-variant bg-surface-container-lowest px-4 py-4`}
       >
         {[
-          ['home', 'Home', 'home'],
-          ['shop', 'Shop Handmade', 'shopping_bag'],
+          ['/', 'Home', 'home'],
+          ['/shop', 'Shop Handmade', 'shopping_bag'],
           ['/events', 'Events', 'event'],
-        ].map(([href, label, icon], index) => (
-          <AppLink
-            key={href}
-            href={href.startsWith('/') ? href : `#${href}`}
+        ].map(([to, label, icon]) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
             onClick={closeMenu}
-            className={`flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg ${
-              index === 0
-                ? 'bg-primary-container text-on-primary-container'
-                : 'text-on-surface hover:bg-surface-container-low'
-            }`}
+            className={({ isActive }) =>
+              `flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg ${
+                isActive && (to === '/' || to === '/shop')
+                  ? 'bg-primary-container text-on-primary-container'
+                  : 'text-on-surface hover:bg-surface-container-low'
+              }`
+            }
           >
             <Icon>{icon}</Icon>
             {label}
-          </AppLink>
+          </NavLink>
         ))}
         {status !== 'authenticated' && status !== 'checking' && (
           <AppLink
@@ -1004,40 +927,6 @@ function HelpButton({ mobile = false }) {
         Need help?
       </button>
     </div>
-  )
-}
-
-function MobileBottomNavigation() {
-  const links = [
-    ['#home', 'Home', 'home', true],
-    ['#shop-mobile', 'Shop', 'shopping_bag'],
-    ['/register', 'Sell', 'add_circle', true],
-    ['/events', 'Events', 'event'],
-    
-  ]
-
-  return (
-    <nav
-      aria-label="Bottom navigation"
-      className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 gap-1 border-t border-outline-variant bg-surface-container-lowest px-2 py-2 lg:hidden"
-    >
-      {links.map(([href, label, icon, highlighted], index) => (
-        <AppLink
-          key={href}
-          href={href}
-          className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg ${
-            index === 0
-              ? 'bg-primary-container text-on-primary-container'
-              : highlighted
-                ? 'bg-cta text-on-cta'
-                : 'text-on-surface-variant'
-          }`}
-        >
-          <Icon filled={index === 0}>{icon}</Icon>
-          <span className="font-label text-label-md">{label}</span>
-        </AppLink>
-      ))}
-    </nav>
   )
 }
 
