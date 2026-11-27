@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
+import { trackProductView } from '../api/analytics.js'
 import { getListing } from '../api/listings.js'
 import { sendInquiry } from '../api/inquiries.js'
 import { errorMessage } from '../api/errors.js'
@@ -11,16 +12,26 @@ export default function ListingDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const { user, status } = useAuth()
+  const trackedListing = useRef(null)
   const [listing, setListing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [feedback, setFeedback] = useState(null)
   const [sending, setSending] = useState(false)
+  const [message, setMessage] = useState('')
+  const [quantity, setQuantity] = useState('1')
 
   useEffect(() => {
     let active = true
     getListing(id)
-      .then((d) => active && setListing(d.listing))
+      .then((d) => {
+        if (!active) return
+        setListing(d.listing)
+        if (trackedListing.current !== id) {
+          trackedListing.current = id
+          trackProductView(id).catch((err) => console.error('Could not record product view', err))
+        }
+      })
       .catch((e) => active && setError(errorMessage(e)))
       .finally(() => active && setLoading(false))
     return () => { active = false }
@@ -30,15 +41,15 @@ export default function ListingDetailPage() {
     event.preventDefault()
     setFeedback(null)
     setSending(true)
-    const form = new FormData(event.currentTarget)
     try {
       await sendInquiry({
         listingId: id,
-        message: form.get('message'),
-        quantity: Number(form.get('quantity')),
+        message,
+        quantity: Number(quantity),
       })
-      setFeedback({ type: 'success', message: 'Inquiry sent. The seller will respond soon.' })
-      event.currentTarget.reset()
+      setMessage('')
+      setQuantity('1')
+      setFeedback({ type: 'success', message: 'Your inquiry was sent successfully. The seller will respond soon.' })
     } catch (e) {
       setFeedback({ type: 'error', message: errorMessage(e) })
     } finally {
@@ -66,17 +77,24 @@ export default function ListingDetailPage() {
                 <p className="font-body text-body-lg text-on-surface-variant">{listing.description}</p>
               )}
               <p className="font-body text-body-md text-on-surface-variant">
-                Sold by <strong>{listing.seller?.name}</strong>
+                Sold by{' '}
+                {listing.seller?._id ? (
+                  <Link to={`/sellers/${listing.seller._id}`} className="font-label text-primary underline">
+                    {listing.seller.name}
+                  </Link>
+                ) : (
+                  <strong>{listing.seller?.name}</strong>
+                )}
                 {listing.location && <> · {listing.location}</>}
               </p>
 
               {status === 'authenticated' && user.role === 'customer' && (
                 <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
                   <h2 className="font-headline text-title-lg text-on-surface">Contact the seller</h2>
-                  <textarea name="message" required minLength={3} maxLength={500} rows={3} placeholder="Is this still available?" className={inputClass} />
+                  <textarea name="message" required minLength={3} maxLength={500} rows={3} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Is this still available?" className={inputClass} />
                   <label className="flex flex-col gap-2">
                     <span className="font-label text-label-md text-on-surface">Quantity</span>
-                    <input name="quantity" type="number" min="1" step="1" defaultValue={1} required className={inputClass} />
+                    <input name="quantity" type="number" min="1" step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required className={inputClass} />
                   </label>
                   {feedback && (
                     <p role={feedback.type === 'error' ? 'alert' : 'status'}

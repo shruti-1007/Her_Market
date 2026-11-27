@@ -7,7 +7,7 @@ import StatusBadge from './StatusBadge.jsx'
 import ListingForm from './ListingForm.jsx'
 
 const smallBtn =
-  'min-h-[40px] rounded-lg border border-outline-variant px-3 font-label text-label-md text-primary hover:bg-primary-container'
+  'min-h-10 rounded-lg border border-outline-variant px-3 font-label text-label-md text-primary transition-colors hover:bg-primary-container'
 
 export default function SellerListings() {
   const [listings, setListings] = useState([])
@@ -54,38 +54,54 @@ export default function SellerListings() {
   }
 
   return (
-    <section className="flex flex-col gap-6">
-      {editing ? (
+    <section className="flex flex-col gap-5">
+      {error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
+      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading your listings...</p>}
+
+      <div className="flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface-container-low px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div>
+          <p className="font-label text-label-md text-on-surface">
+            {listings.length} {listings.length === 1 ? 'product' : 'products'}
+          </p>
+          <p className="mt-1 font-body text-sm text-on-surface-variant">Your published and unpublished listings</p>
+        </div>
+        {!editing && (
+          <button
+            type="button"
+            onClick={() => setEditing('new')}
+            className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-lg bg-cta px-5 font-label text-label-md text-on-cta shadow-sm transition-colors hover:opacity-90 sm:self-auto"
+          >
+            <span className="material-symbols-outlined text-title-md" aria-hidden="true">add</span>
+            Add product
+          </button>
+        )}
+      </div>
+
+      {editing && (
         <ListingForm
           listing={editing === 'new' ? null : editing}
           onCancel={() => setEditing(null)}
           onSaved={(saved) => { upsert(saved); setEditing(null) }}
         />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setEditing('new')}
-          className="min-h-[48px] self-start rounded-lg bg-cta px-6 font-label text-label-lg text-on-cta"
-        >
-          + Add listing
-        </button>
       )}
 
-      {error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
-      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading your listings...</p>}
       {!loading && listings.length === 0 && (
-        <p className="font-body text-body-md text-on-surface-variant">
-          You have no listings yet. Add your first one.
-        </p>
+        <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest px-6 py-12 text-center">
+          <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">inventory_2</span>
+          <h3 className="mt-3 font-headline text-title-lg text-on-surface">Your shop is ready for its first product</h3>
+          <p className="mx-auto mt-2 max-w-md font-body text-body-md text-on-surface-variant">
+            Add a listing to start showing your work to customers.
+          </p>
+        </div>
       )}
 
       <ul className="flex flex-col gap-4">
         {listings.map((l) => (
           <li
             key={l._id}
-            className="flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm sm:flex-row sm:items-center"
+            className="grid gap-4 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm transition-shadow hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-center sm:p-5 xl:grid-cols-[10rem_minmax(0,1fr)_auto]"
           >
-            <ListingImage src={l.image} alt={l.title} className="h-24 w-full rounded-md sm:w-32" />
+            <ListingImage src={l.image} alt={l.title} className="h-48 w-full rounded-xl bg-surface-container-low object-cover sm:h-32 xl:h-36" />
             <div className="flex flex-1 flex-col gap-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-headline text-title-md text-on-surface">{l.title}</h3>
@@ -96,12 +112,12 @@ export default function SellerListings() {
               </p>
               <p className="font-headline text-title-md text-primary">{formatPrice(l.price)}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1 xl:justify-end">
               <button type="button" className={smallBtn} onClick={() => setEditing(l)}>Edit</button>
               <button type="button" className={smallBtn} onClick={() => toggleAvailability(l)}>
                 {l.availability === 'available' ? 'Mark unavailable' : 'Mark available'}
               </button>
-              <button type="button" className={`${smallBtn} text-error`} onClick={() => remove(l)}>Delete</button>
+              <button type="button" className={`${smallBtn} border-red-200 text-error hover:bg-red-50`} onClick={() => remove(l)}>Delete</button>
             </div>
           </li>
         ))}

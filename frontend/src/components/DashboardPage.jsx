@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
 import SellerListings from './dashboard/SellerListings.jsx'
 import SellerInquiries from './dashboard/SellerInquiries.jsx'
+import SellerProfileSidebar from './dashboard/SellerProfileSidebar.jsx'
+import SellerAnalytics from './dashboard/SellerAnalytics.jsx'
 import CustomerInquiries from './dashboard/CustomerInquiries.jsx'
 import OrgDashboard from './org/OrgDashboard.jsx'
 import AdminDashboard from './admin/AdminDashboard.jsx'
@@ -22,17 +24,25 @@ function DashboardPage() {
     navigate('/login', { replace: true })
   }
 
-  const tabClass = (name) =>
-    `min-h-[44px] rounded-lg px-4 font-label text-label-md transition-colors ${
-      tab === name
-        ? 'bg-primary text-on-primary'
-        : 'border border-outline-variant text-primary hover:bg-primary-container'
-    }`
+  const sectionDetails = {
+    listings: {
+      title: 'Your products',
+      description: 'Manage your listings, prices and availability.',
+    },
+    inquiries: {
+      title: 'Customer inquiries',
+      description: 'Review and respond to messages about your products.',
+    },
+    analytics: {
+      title: 'Business analytics',
+      description: 'Understand product interest and customer activity.',
+    },
+  }[tab]
 
   return (
     <main className="min-h-screen bg-surface">
       <header className="border-b border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+        <div className={`mx-auto flex items-center justify-between gap-4 px-4 py-4 sm:px-6 ${isSeller ? 'max-w-7xl' : 'max-w-6xl'}`}>
           <Link to="/" className="flex items-center gap-3 rounded-lg">
             <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm">
               <span className="material-symbols-outlined text-headline-sm" aria-hidden="true">storefront</span>
@@ -49,31 +59,48 @@ function DashboardPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="rounded-xl bg-primary px-6 py-8 text-on-primary shadow-md sm:px-10">
-          <p className="font-label text-label-md capitalize text-primary-container">
-            {user.role} account
-          </p>
-          <h1 className="mt-2 font-display text-headline-lg-mobile sm:text-display-lg">
-            Welcome, {user.name}
-          </h1>
-          <p className="mt-2 font-body text-body-md text-primary-container">{user.email}</p>
+      <div className={`mx-auto px-4 py-7 sm:px-6 sm:py-9 ${isSeller ? 'max-w-7xl lg:px-8' : 'max-w-6xl'}`}>
+        <section className="flex flex-col gap-5 rounded-2xl bg-primary px-6 py-7 text-on-primary shadow-md sm:flex-row sm:items-end sm:justify-between sm:px-9 sm:py-8">
+          <div>
+            <p className="font-label text-label-md uppercase tracking-wide text-primary-container">
+              {isSeller ? 'Seller workspace' : `${user.role} account`}
+            </p>
+            <h1 className="mt-2 font-display text-headline-lg-mobile sm:text-display-lg">
+              Welcome, {user.name}
+            </h1>
+            <p className="mt-2 font-body text-body-md text-primary-container">
+              {isSeller ? 'Manage your shop, products and customer activity.' : user.email}
+            </p>
+          </div>
+          {isSeller && (
+            <span className="inline-flex min-h-9 items-center gap-2 self-start rounded-full border border-white/20 bg-white/10 px-4 font-label text-label-md text-on-primary sm:self-auto">
+              <span className="material-symbols-outlined text-title-md" aria-hidden="true">storefront</span>
+              Seller account
+            </span>
+          )}
         </section>
 
         {isSeller ? (
-          <>
-            <div className="mt-8 flex gap-3">
-              <button type="button" className={tabClass('listings')} onClick={() => setTab('listings')}>
-                My listings
-              </button>
-              <button type="button" className={tabClass('inquiries')} onClick={() => setTab('inquiries')}>
-                Inquiries
-              </button>
-            </div>
-            <div className="mt-6">
-              {tab === 'listings' ? <SellerListings /> : <SellerInquiries />}
-            </div>
-          </>
+          <div className="mt-7 grid items-start gap-6 lg:mt-8 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-8">
+            <SellerProfileSidebar activeTab={tab} onTabChange={setTab} />
+            <section className="min-w-0">
+              <div className="mb-5">
+                <h2 className="font-headline text-headline-lg-mobile text-on-surface sm:text-headline-lg">
+                  {sectionDetails.title}
+                </h2>
+                <p className="mt-1 font-body text-body-md text-on-surface-variant">
+                  {sectionDetails.description}
+                </p>
+              </div>
+              <div>
+                {tab === 'listings'
+                  ? <SellerListings />
+                  : tab === 'inquiries'
+                    ? <SellerInquiries />
+                    : <SellerAnalytics />}
+              </div>
+            </section>
+          </div>
         ) : (
           <div className="mt-8">
             <h2 className="mb-4 font-headline text-headline-lg-mobile text-on-surface">

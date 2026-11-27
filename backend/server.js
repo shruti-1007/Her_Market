@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const listingRoutes = require("./routes/listingRoutes");
+const sellerRoutes = require("./routes/sellerRoutes");
+const sellerAnalyticsRoutes = require("./routes/sellerAnalyticsRoutes");
 
 
 
@@ -46,6 +48,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // with the other routes, before the 404 handler:
 app.use("/api/listings", listingRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/sellers", sellerRoutes);
+app.use("/api/seller-analytics", sellerAnalyticsRoutes);
 
 app.use("/api/events", eventRoutes);
 app.use("/api/organizations", organizationRoutes);
