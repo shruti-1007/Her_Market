@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createListing, updateListing } from '../../api/listings.js'
 import { errorMessage } from '../../api/errors.js'
 import { CATEGORIES, inputClass } from '../../constants.js'
+import { imageUrl } from '../../api/client.js'
+import PricingAssistant from './PricingAssistant.jsx'
 
 function Label({ text, children }) {
   return (
@@ -15,6 +17,17 @@ function Label({ text, children }) {
 export default function ListingForm({ listing, onSaved, onCancel }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(listing?.image ? imageUrl(listing.image) : '')
+  const [price, setPrice] = useState(listing?.price ?? '')
+  const [priceMethod, setPriceMethod] = useState(listing ? 'manual' : null)
+  const [pricingInfo, setPricingInfo] = useState(null)
+  const imageInput = useRef(null)
+
+  useEffect(() => {
+    if (!imagePreview.startsWith('blob:')) return undefined
+    return () => URL.revokeObjectURL(imagePreview)
+  }, [imagePreview])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -23,6 +36,7 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
 
     const formData = new FormData(event.currentTarget)
     if (!formData.get('image')?.size) formData.delete('image') // no new image chosen
+    if (pricingInfo) formData.set('pricing', JSON.stringify(pricingInfo))
 
     try {
       const data = listing
@@ -35,6 +49,35 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
       setSaving(false)
     }
   }
+
+  function handleImageChange(event) {
+    const file = event.target.files?.[0] || null
+    setImageFile(file)
+    setImagePreview(file ? URL.createObjectURL(file) : (listing?.image ? imageUrl(listing.image) : ''))
+    setPricingInfo(null)
+    if (!listing) setPriceMethod(file ? null : 'manual')
+  }
+
+  function removeSelectedImage() {
+    setImageFile(null)
+    setImagePreview(listing?.image ? imageUrl(listing.image) : '')
+    setPricingInfo(null)
+    if (imageInput.current) imageInput.current.value = ''
+    if (!listing) setPriceMethod('manual')
+  }
+
+  function finishPricing({ price: suggestedPrice, pricing }) {
+    setPrice(suggestedPrice)
+    setPricingInfo({
+      ...pricing,
+      suggestedPriceNpr: suggestedPrice,
+      totalCostNpr: pricing.totalCostNpr,
+    })
+    setPriceMethod('manual')
+  }
+
+  const showPrice = listing || !imageFile || priceMethod === 'manual'
+  const canSubmit = !saving && showPrice && price !== '' && Number.isFinite(Number(price)) && Number(price) >= 0
 
   return (
     <form
@@ -61,9 +104,6 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
             ))}
           </select>
         </Label>
-        <Label text="Price (Rs)">
-          <input name="price" type="number" min="0" step="any" required defaultValue={listing?.price} className={inputClass} />
-        </Label>
       </div>
 
       <Label text="Description">
@@ -75,9 +115,115 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
           <input name="location" defaultValue={listing?.location} className={inputClass} />
         </Label>
         <Label text={listing ? 'Replace image (optional)' : 'Image (JPG, PNG or WEBP, max 5 MB)'}>
-          <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className={inputClass} />
+          <input
+            name="image"
+            ref={imageInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            onChange={handleImageChange}
+            className={inputClass}
+          />
         </Label>
       </div>
+
+      {imagePreview && (
+        <div className="flex flex-col gap-2">
+          <p className="font-label text-label-md text-on-surface">Product photo preview</p>
+          <img
+            src={imagePreview}
+            alt="Preview of your product"
+            className="h-48 w-full rounded-lg border border-outline-variant bg-surface-container-low object-contain sm:w-64"
+          />
+          {imageFile && (
+            <button type="button" onClick={removeSelectedImage} className="min-h-11 self-start rounded-lg border border-outline-variant px-4 font-label text-label-md text-primary">
+              Remove photo and set price myself
+            </button>
+          )}
+        </div>
+      )}
+
+      {!listing && imageFile && !priceMethod && (
+        <section className="flex flex-col gap-3 rounded-lg border border-outline-variant bg-primary-container p-5">
+          <h3 className="font-headline text-title-lg text-on-primary-container">
+            How would you like to decide the price of your product?
+          </h3>
+          <button
+            type="button"
+            onClick={() => { setPricingInfo(null); setPriceMethod('manual') }}
+            className="flex min-h-[64px] items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 text-left font-label text-label-md text-on-surface hover:bg-surface-container-low"
+          >
+            <span className="material-symbols-outlined text-title-lg text-primary" aria-hidden="true">edit</span>
+            <span className="flex flex-col">
+              <span>I'll decide the price myself</span>
+              <span className="font-body text-sm text-on-surface-variant">Enter any price you choose.</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPriceMethod('ai')}
+            className="flex min-h-[64px] items-center gap-3 rounded-lg bg-primary p-4 text-left font-label text-label-md text-on-primary hover:opacity-95"
+          >
+            <span className="material-symbols-outlined text-title-lg" aria-hidden="true">auto_awesome</span>
+            <span className="flex flex-col">
+              <span>Help me calculate a fair price</span>
+              <span className="font-body text-sm text-primary-container">
+                Your photo will be sent to AI for material suggestions. It may be wrong.
+              </span>
+            </span>
+          </button>
+        </section>
+      )}
+
+      {priceMethod === 'ai' && imageFile && (
+        <PricingAssistant
+          image={imageFile}
+          onComplete={finishPricing}
+          onCancel={() => {
+            setPricingInfo(null)
+            setPriceMethod('manual')
+          }}
+        />
+      )}
+
+      {showPrice && (
+        <div className="flex flex-col gap-2">
+          <Label text="Selling price (NPR)">
+            <input
+              name="price"
+              type="number"
+              min="0"
+              step="any"
+              required
+              inputMode="decimal"
+              value={price}
+              onChange={(event) => {
+                setPrice(event.target.value)
+                if (pricingInfo) {
+                  setPricingInfo((current) => ({ ...current, finalDecision: 'changed' }))
+                }
+              }}
+              className={inputClass}
+            />
+          </Label>
+          {!listing && !imageFile && (
+            <p className="font-body text-sm text-on-surface-variant">
+              You can add a photo for AI help, or set your price yourself now.
+            </p>
+          )}
+          {pricingInfo && (
+            <div className="rounded-lg bg-primary-container p-4 font-body text-body-md text-on-primary-container">
+              <p>AI suggested {Number(pricingInfo.suggestedPriceNpr).toLocaleString('en-IN')} NPR.</p>
+              <p>Estimated cost to make: {Number(pricingInfo.totalCostNpr).toLocaleString('en-IN')} NPR.</p>
+              <p className="mt-1 text-sm">
+                {pricingInfo.finalDecision === 'accepted'
+                  ? 'You accepted the suggested price. You can still change it.'
+                  : 'You chose to set the final price yourself.'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
+const { buildSavedPricing } = require("../services/pricing");
 
 const SELLER_FIELDS = "name location contact description";
 
@@ -13,6 +14,34 @@ const removeFile = (p) => {
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const validationMessage = (err) =>
   err.name === "ValidationError" ? Object.values(err.errors).map((e) => e.message) : null;
+const parsePricing = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string") {
+    if (typeof value === "object" && !Array.isArray(value)) return value;
+    const err = new Error("Pricing information is invalid");
+    err.status = 400;
+    throw err;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Pricing information is invalid");
+    }
+    return parsed;
+  } catch {
+    const err = new Error("Pricing information is invalid");
+    err.status = 400;
+    throw err;
+  }
+};
+const validatePricing = (input, price) => {
+  try {
+    return buildSavedPricing(input, price);
+  } catch (err) {
+    err.status = 400;
+    throw err;
+  }
+};
 
 // POST /api/listings   (seller)   multipart/form-data or JSON
 exports.createListing = async (req, res) => {
@@ -20,17 +49,21 @@ exports.createListing = async (req, res) => {
   try {
     const { title, description, type, category, price, location, availability } = req.body;
     const seller = await User.findById(req.user.id);
+    const pricingInput = parsePricing(req.body.pricing);
+    const pricing = pricingInput ? validatePricing(pricingInput, price) : undefined;
 
     const listing = await Listing.create({
       title, description, type, category, price, availability,
       location: location || seller.location,
       image,
+      pricing,
       seller: req.user.id,
     });
     res.status(201).json({ success: true, message: "Listing created", listing });
   } catch (err) {
     removeFile(image);
     const errors = validationMessage(err);
+    if (err.status === 400) return res.status(400).json({ success: false, message: err.message });
     if (errors) return res.status(400).json({ success: false, message: "Validation failed", errors });
     console.error(err);
     res.status(500).json({ success: false, message: "Server error" });
@@ -56,7 +89,7 @@ exports.getListings = async (req, res) => {
     }
 
     const [listings, total] = await Promise.all([
-      Listing.find(q).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).populate("seller", SELLER_FIELDS),
+      Listing.find(q).select("-pricing").sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).populate("seller", SELLER_FIELDS),
       Listing.countDocuments(q),
     ]);
     res.json({ success: true, total, page, pages: Math.ceil(total / limit), listings });
@@ -85,7 +118,7 @@ exports.getListing = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id))
       return res.status(404).json({ success: false, message: "Listing not found" });
 
-    const listing = await Listing.findById(req.params.id).populate("seller", SELLER_FIELDS);
+    const listing = await Listing.findById(req.params.id).select("-pricing").populate("seller", SELLER_FIELDS);
     if (!listing) return res.status(404).json({ success: false, message: "Listing not found" });
 
     if (listing.availability !== "available") {
@@ -126,6 +159,14 @@ exports.updateListing = async (req, res) => {
     ["title", "description", "type", "category", "price", "location", "availability"].forEach((f) => {
       if (req.body[f] !== undefined) listing[f] = req.body[f];
     });
+    const pricingInput = parsePricing(req.body.pricing);
+    if (pricingInput) {
+      listing.pricing = validatePricing(pricingInput, req.body.price ?? listing.price);
+    } else if (req.body.price !== undefined && listing.pricing) {
+      const currentPricing = listing.pricing.toObject();
+      currentPricing.finalDecision = "changed";
+      listing.pricing = currentPricing;
+    }
     const oldImage = listing.image;
     if (newImage) listing.image = newImage;
 
@@ -135,6 +176,7 @@ exports.updateListing = async (req, res) => {
   } catch (err) {
     removeFile(newImage);
     const errors = validationMessage(err);
+    if (err.status === 400) return res.status(400).json({ success: false, message: err.message });
     if (errors) return res.status(400).json({ success: false, message: "Validation failed", errors });
     console.error(err);
     res.status(500).json({ success: false, message: "Server error" });

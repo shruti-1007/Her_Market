@@ -37,16 +37,7 @@ const modules = [
     color: 'secondary',
     action: 'Meet makers',
   },
-  {
-    title: 'Learn',
-    description:
-      'Short, plain-language lessons on taking great photos, setting prices, and joining local fairs.',
-    mobileDescription: 'Short guides & free trainings',
-    icon: 'menu_book',
-    href: '#learn',
-    color: 'cta',
-    action: 'Start learning',
-  },
+ 
 ]
 
 const steps = [
@@ -67,7 +58,7 @@ const steps = [
   {
     title: '3. Deliver & grow your shop',
     description:
-      'Arrange pickup or delivery, see your monthly earnings clearly, and learn new skills alongside supportive women.',
+      'Arrange pickup or delivery, see your monthly earnings clearly.',
     icon: 'savings',
     color: 'tertiary',
   },
@@ -422,18 +413,12 @@ function DesktopHeader() {
           <a href="#shop" className="desktop-nav-link">
             Shop
           </a>
-          <a href="#business" className="desktop-nav-link whitespace-nowrap">
-            My Business
-          </a>
-          <a href="#connect" className="desktop-nav-link">
-            Connect
-          </a>
+         
+        
           <AppLink href="/events" className="desktop-nav-link">
             Events
           </AppLink>
-          <a href="#learn" className="desktop-nav-link">
-            Learn
-          </a>
+         
         </nav>
         <div className="hidden max-w-[210px] flex-1 xl:flex">
           <label className="relative flex w-full items-center">
@@ -497,9 +482,6 @@ function MobileHeader() {
         {[
           ['home', 'Home', 'home'],
           ['shop', 'Shop Handmade', 'shopping_bag'],
-          ['business', 'My Business', 'calculate'],
-          ['connect', 'Connect', 'diversity_3'],
-          ['learn', 'Learn', 'menu_book'],
           ['/events', 'Events', 'event'],
         ].map(([href, label, icon], index) => (
           <AppLink
@@ -549,8 +531,7 @@ function DesktopHero() {
           </h1>
           <p className="max-w-prose text-pretty font-body text-body-lg text-on-surface-variant">
             A warm, simple marketplace where women makers sell handmade crafts and
-            food, keep track of their earnings, connect with other makers, and
-            learn step by step.
+            food, keep track of their earnings, connect with other makers.
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <AppLink href="/register" className="hero-action bg-cta text-on-cta">
@@ -974,12 +955,8 @@ function DesktopFooter() {
           <a href="#help" className="footer-link">
             Help Center
           </a>
-          <a href="#contact" className="footer-link">
-            Contact Us
-          </a>
-          <a href="#learn" className="footer-link">
-            Simple Video Guides
-          </a>
+         
+        
         </div>
         <div className="flex flex-col gap-3">
           <h3 className="font-headline text-title-md text-on-surface">
@@ -1036,7 +1013,7 @@ function MobileBottomNavigation() {
     ['#shop-mobile', 'Shop', 'shopping_bag'],
     ['/register', 'Sell', 'add_circle', true],
     ['/events', 'Events', 'event'],
-    ['#learn', 'Learn', 'menu_book'],
+    
   ]
 
   return (
