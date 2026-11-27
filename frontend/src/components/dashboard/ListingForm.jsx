@@ -82,11 +82,14 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-5 rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm"
+      className="flex flex-col gap-5 rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-7"
     >
-      <h2 className="font-headline text-title-lg text-on-surface">
-        {listing ? 'Edit listing' : 'Add a listing'}
-      </h2>
+      <div className="border-b border-outline-variant pb-4">
+        <p className="font-label text-label-md uppercase tracking-wide text-primary">Your products</p>
+        <h2 className="mt-1 font-headline text-title-lg text-on-surface">
+          {listing ? 'Edit listing' : 'Add a listing'}
+        </h2>
+      </div>
 
       <Label text="Title">
         <input name="title" required minLength={3} maxLength={100} defaultValue={listing?.title} className={inputClass} />
@@ -226,18 +229,18 @@ export default function ListingForm({ listing, onSaved, onCancel }) {
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 border-t border-outline-variant pt-5">
         <button
           type="submit"
-          disabled={!canSubmit}
-          className="min-h-[48px] rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary disabled:opacity-70"
+          disabled={saving}
+          className="min-h-11 rounded-lg bg-primary px-5 font-label text-label-md text-on-primary shadow-sm transition-colors hover:opacity-90 disabled:opacity-70"
         >
           {saving ? 'Saving...' : listing ? 'Save changes' : 'Publish listing'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="min-h-[48px] rounded-lg border border-outline-variant px-6 font-label text-label-lg text-primary"
+          className="min-h-11 rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary transition-colors hover:bg-surface-container-low"
         >
           Cancel
         </button>

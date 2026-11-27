@@ -11,6 +11,7 @@ import AuthPage from './components/AuthPage.jsx'
 import DashboardPage from './components/DashboardPage.jsx'
 import LandingPage from './components/LandingPage.jsx'
 import ListingDetailPage from './components/ListingDetailPage.jsx'
+import SellerProfilePage from './components/SellerProfilePage.jsx'
 import EventsPage from './components/events/EventPages.jsx'
 import EventDetailPage from './components/events/EventDetailPage.jsx'
 
@@ -90,6 +91,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/events" element={<EventsPage />} />
       <Route path="/events/:id" element={<EventDetailPage />} />
+      <Route path="/sellers/:sellerId" element={<SellerProfilePage />} />
       <Route path="/listings/:id" element={<ListingDetailPage />} />
       <Route
         path="/login"

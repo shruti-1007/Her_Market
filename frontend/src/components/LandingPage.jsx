@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getListings } from '../api/listings.js'
 import { errorMessage } from '../api/errors.js'
 import { formatPrice } from '../constants.js'
+import { useAuth } from '../context/useAuth.js'
 import ListingImage from './ListingImage.jsx'
 
 const modules = [
@@ -135,6 +136,120 @@ function Icon({ children, className = '', filled = false }) {
 
 function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
+}
+
+function AccountMenu({ mobile = false }) {
+  const { user, status, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    const closeOnOutsideClick = (event) => {
+      if (!menuRef.current?.contains(event.target)) setOpen(false)
+    }
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [open])
+
+  if (status !== 'authenticated' || !user) {
+    if (mobile) {
+      return status === 'checking' ? (
+        <span aria-label="Checking account" className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant">
+          <Icon>person</Icon>
+        </span>
+      ) : null
+    }
+
+    return status === 'checking' ? (
+      <span aria-label="Checking account" className="hidden h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant xl:flex">
+        <Icon>person</Icon>
+      </span>
+    ) : (
+      <AppLink
+        href="/login"
+        className="hidden min-h-[48px] shrink-0 items-center whitespace-nowrap rounded-lg px-3 font-label text-label-lg text-primary transition-colors duration-state-change hover:bg-primary-container xl:flex"
+      >
+        Login / Sign up
+      </AppLink>
+    )
+  }
+
+  const displayName = user.name || 'Account'
+  const role = user.role ? `${user.role[0].toUpperCase()}${user.role.slice(1)}` : 'Account'
+
+  return (
+    <div ref={menuRef} className={`relative ${mobile ? '' : 'hidden xl:block'}`}>
+      <button
+        type="button"
+        aria-label={`Open account menu for ${displayName}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="flex h-11 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest p-1 pr-2 text-primary shadow-sm transition-colors hover:bg-primary-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-label text-label-md text-on-primary">
+          {displayName.charAt(0).toUpperCase()}
+        </span>
+        {!mobile && <Icon className="text-title-md">expand_more</Icon>}
+      </button>
+
+      <div
+        role="menu"
+        aria-hidden={!open}
+        className={`absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg transition duration-150 ease-out ${
+          open
+            ? 'visible translate-y-0 scale-100 opacity-100'
+            : 'invisible -translate-y-1 scale-95 opacity-0'
+        }`}
+      >
+        <div className="rounded-lg bg-surface-container-low px-4 py-3">
+          <p className="truncate font-label text-label-md text-on-surface">{displayName}</p>
+          <p className="mt-1 font-body text-sm text-on-surface-variant">{role} account</p>
+        </div>
+        <div className="mt-2 flex flex-col gap-1">
+          <Link
+            to="/dashboard"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
+          >
+            <Icon className="text-title-md">dashboard</Icon>
+            Dashboard
+          </Link>
+          {user.role === 'seller' && user.id && (
+            <Link
+              to={`/sellers/${user.id}`}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
+            >
+              <Icon className="text-title-md">storefront</Icon>
+              Public seller profile
+            </Link>
+          )}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); logout() }}
+            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 text-left font-label text-label-md text-error transition-colors hover:bg-red-50"
+          >
+            <Icon className="text-title-md">logout</Icon>
+            Log out
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* ---------- Real listings from the backend ---------- */
@@ -318,12 +433,7 @@ function DesktopHeader() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <LanguageButton />
-          <AppLink
-            href="/login"
-            className="hidden min-h-[48px] shrink-0 items-center whitespace-nowrap rounded-lg px-3 font-label text-label-lg text-primary transition-colors duration-state-change hover:bg-primary-container xl:flex"
-          >
-            Login / Sign up
-          </AppLink>
+          <AccountMenu />
           <AppLink
             href="/register"
             className="hidden min-h-[48px] shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-cta px-4 py-3 font-label text-label-lg text-on-cta shadow-sm transition-colors duration-state-change hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary xl:inline-flex"
@@ -339,6 +449,7 @@ function DesktopHeader() {
 
 function MobileHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { status } = useAuth()
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -357,7 +468,10 @@ function MobileHeader() {
           </button>
           <Brand compact />
         </div>
-        <LanguageButton mobile />
+        <div className="flex items-center gap-2">
+          <LanguageButton mobile />
+          <AccountMenu mobile />
+        </div>
       </div>
       <nav
         aria-label="Mobile menu"
@@ -369,7 +483,6 @@ function MobileHeader() {
           ['home', 'Home', 'home'],
           ['shop', 'Shop Handmade', 'shopping_bag'],
           ['/events', 'Events', 'event'],
-          ['/login', 'Login / Sign up', 'login'],
         ].map(([href, label, icon], index) => (
           <AppLink
             key={href}
@@ -385,6 +498,16 @@ function MobileHeader() {
             {label}
           </AppLink>
         ))}
+        {status !== 'authenticated' && status !== 'checking' && (
+          <AppLink
+            href="/login"
+            onClick={closeMenu}
+            className="flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg text-on-surface hover:bg-surface-container-low"
+          >
+            <Icon>login</Icon>
+            Login / Sign up
+          </AppLink>
+        )}
         <AppLink
           href="/register"
           onClick={closeMenu}

@@ -65,7 +65,7 @@ const listingSchema = new mongoose.Schema(
         type: {
       type: String,
       enum: { values: ["product", "service"], message: "Type must be 'product' or 'service'" },
-      default: "product", // optional: everything is a product unless stated otherwise
+      default: "product", // optional: everything is a product unno not with the customer view point, its a ecommerce platform, we have two sign in portals. i can sign in as a seller and a customer. what i want to do is: 1)take me as a seller, i sign in as a seller and i list out some products. now a small profile must be shown in my side bar, like it shows as google account. Also, that profile must be shown to customer if they want to visit, through profile link attached in the product itself.  And, there must be some analytics part that must be seen in seller, own's profile only, like we now have listing and inquires, listing includes what products they listed and inquiries include order and all. now, there must be some analytical section that shows how many people visit the profile, how many people see the products. who orders it, pending payment etc. So, how can I do this?less stated otherwise
     },
     category: {
       type: String,

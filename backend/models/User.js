@@ -11,8 +11,10 @@ const userSchema = new mongoose.Schema({
   },
   password: { type: String, required: true, select: false }, // hidden from queries by default
   role: { type: String, enum: ["seller", "customer", "organization", "admin"], default: "customer" },
+  businessName: { type: String, trim: true, default: "" },
+  profileImage: { type: String, trim: true, default: "" },
   location: { type: String, trim: true, default: "" },
-  description: { type: String, trim: true, default: "" },
+  description: { type: String, trim: true, maxlength: 1000, default: "" },
   contact: { type: String, trim: true, default: "" },
   createdAt: { type: Date, default: Date.now },
 });
