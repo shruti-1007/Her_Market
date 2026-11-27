@@ -1,14 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import { useAuth } from '../context/useAuth.js'
+import { Link } from 'react-router-dom'
 import { ProductCard } from './ProductCatalog.jsx'
 import useListings from './useListings.js'
-import {
-  Brand,
-  Icon,
-  LanguageButton,
-  MobileBottomNavigation,
-} from './SiteNavigation.jsx'
+import { Brand, Icon, LanguageButton } from './SiteNavigation.jsx'
 
 const modules = [
   {
@@ -130,120 +123,6 @@ function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
 }
 
-function AccountMenu({ mobile = false }) {
-  const { user, status, logout } = useAuth()
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    if (!open) return undefined
-
-    const closeOnOutsideClick = (event) => {
-      if (!menuRef.current?.contains(event.target)) setOpen(false)
-    }
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('pointerdown', closeOnOutsideClick)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
-
-  if (status !== 'authenticated' || !user) {
-    if (mobile) {
-      return status === 'checking' ? (
-        <span aria-label="Checking account" className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant">
-          <Icon>person</Icon>
-        </span>
-      ) : null
-    }
-
-    return status === 'checking' ? (
-      <span aria-label="Checking account" className="hidden h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant xl:flex">
-        <Icon>person</Icon>
-      </span>
-    ) : (
-      <AppLink
-        href="/login"
-        className="hidden min-h-[48px] shrink-0 items-center whitespace-nowrap rounded-lg px-3 font-label text-label-lg text-primary transition-colors duration-state-change hover:bg-primary-container xl:flex"
-      >
-        Login / Sign up
-      </AppLink>
-    )
-  }
-
-  const displayName = user.name || 'Account'
-  const role = user.role ? `${user.role[0].toUpperCase()}${user.role.slice(1)}` : 'Account'
-
-  return (
-    <div ref={menuRef} className={`relative ${mobile ? '' : 'hidden xl:block'}`}>
-      <button
-        type="button"
-        aria-label={`Open account menu for ${displayName}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        className="flex h-11 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest p-1 pr-2 text-primary shadow-sm transition-colors hover:bg-primary-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-      >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-label text-label-md text-on-primary">
-          {displayName.charAt(0).toUpperCase()}
-        </span>
-        {!mobile && <Icon className="text-title-md">expand_more</Icon>}
-      </button>
-
-      <div
-        role="menu"
-        aria-hidden={!open}
-        className={`absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg transition duration-150 ease-out ${
-          open
-            ? 'visible translate-y-0 scale-100 opacity-100'
-            : 'invisible -translate-y-1 scale-95 opacity-0'
-        }`}
-      >
-        <div className="rounded-lg bg-surface-container-low px-4 py-3">
-          <p className="truncate font-label text-label-md text-on-surface">{displayName}</p>
-          <p className="mt-1 font-body text-sm text-on-surface-variant">{role} account</p>
-        </div>
-        <div className="mt-2 flex flex-col gap-1">
-          <Link
-            to="/dashboard"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
-          >
-            <Icon className="text-title-md">dashboard</Icon>
-            Dashboard
-          </Link>
-          {user.role === 'seller' && user.id && (
-            <Link
-              to={`/sellers/${user.id}`}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
-            >
-              <Icon className="text-title-md">storefront</Icon>
-              Public seller profile
-            </Link>
-          )}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setOpen(false); logout() }}
-            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 text-left font-label text-label-md text-error transition-colors hover:bg-red-50"
-          >
-            <Icon className="text-title-md">logout</Icon>
-            Log out
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /* ---------- Real listings from the backend ---------- */
 
 function ProductGrid({ state, className }) {
@@ -301,146 +180,6 @@ function MobileProducts() {
       </h2>
       <ProductGrid state={state} className="grid grid-cols-1 gap-4" />
     </section>
-  )
-}
-
-/* ---------- Layout pieces ---------- */
-
-function DesktopHeader() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest shadow-sm">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
-        <Brand />
-        <nav aria-label="Main navigation" className="hidden shrink-0 items-center gap-1 lg:flex">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              isActive
-                ? 'flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container'
-                : 'desktop-nav-link'
-            }
-          >
-            Home
-          </NavLink>
-          <NavLink
-            to="/shop"
-            className={({ isActive }) =>
-              isActive
-                ? 'flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container'
-                : 'desktop-nav-link'
-            }
-          >
-            Shop
-          </NavLink>
-         
-        
-          <AppLink href="/events" className="desktop-nav-link">
-            Events
-          </AppLink>
-         
-        </nav>
-        <div className="hidden max-w-[210px] flex-1 xl:flex">
-          <label className="relative flex w-full items-center">
-            <span className="sr-only">Search handmade products</span>
-            <Icon className="absolute left-3 text-on-surface-variant">search</Icon>
-            <input
-              type="search"
-              placeholder="Search goods..."
-              className="min-h-[48px] w-full rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-4 font-body text-body-md text-on-surface outline-none placeholder:text-outline focus:border-primary focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <LanguageButton />
-          <AccountMenu />
-          <AppLink
-            href="/register"
-            className="hidden min-h-[48px] shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-cta px-4 py-3 font-label text-label-lg text-on-cta shadow-sm transition-colors duration-state-change hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary xl:inline-flex"
-          >
-            <Icon>add_business</Icon>
-            Sell Your Products
-          </AppLink>
-        </div>
-      </div>
-    </header>
-  )
-}
-
-function MobileHeader() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const { status } = useAuth()
-
-  const closeMenu = () => setMenuOpen(false)
-
-  return (
-    <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest shadow-sm">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg bg-surface-container-low text-on-surface"
-          >
-            <Icon className="text-headline-sm">{menuOpen ? 'close' : 'menu'}</Icon>
-          </button>
-          <Brand compact />
-        </div>
-        <div className="flex items-center gap-2">
-          <LanguageButton mobile />
-          <AccountMenu mobile />
-        </div>
-      </div>
-      <nav
-        aria-label="Mobile menu"
-        className={`${
-          menuOpen ? 'flex' : 'hidden'
-        } flex-col gap-2 border-t border-outline-variant bg-surface-container-lowest px-4 py-4`}
-      >
-        {[
-          ['/', 'Home', 'home'],
-          ['/shop', 'Shop Handmade', 'shopping_bag'],
-          ['/events', 'Events', 'event'],
-        ].map(([to, label, icon]) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            onClick={closeMenu}
-            className={({ isActive }) =>
-              `flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg ${
-                isActive && (to === '/' || to === '/shop')
-                  ? 'bg-primary-container text-on-primary-container'
-                  : 'text-on-surface hover:bg-surface-container-low'
-              }`
-            }
-          >
-            <Icon>{icon}</Icon>
-            {label}
-          </NavLink>
-        ))}
-        {status !== 'authenticated' && status !== 'checking' && (
-          <AppLink
-            href="/login"
-            onClick={closeMenu}
-            className="flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg text-on-surface hover:bg-surface-container-low"
-          >
-            <Icon>login</Icon>
-            Login / Sign up
-          </AppLink>
-        )}
-        <AppLink
-          href="/register"
-          onClick={closeMenu}
-          className="mt-2 flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-cta px-4 font-label text-label-lg text-on-cta"
-        >
-          <Icon>add_business</Icon>
-          Sell Your Products
-        </AppLink>
-      </nav>
-    </header>
   )
 }
 
@@ -935,7 +674,6 @@ function HelpButton({ mobile = false }) {
 function DesktopPage() {
   return (
     <div className="hidden min-h-screen flex-col pb-24 lg:flex">
-      <DesktopHeader />
       <main className="flex-1">
         <DesktopHero />
         <StepsSection />
@@ -955,7 +693,6 @@ function DesktopPage() {
 function MobilePage() {
   return (
     <div className="flex min-h-screen flex-col pb-24 lg:hidden">
-      <MobileHeader />
       <main className="flex flex-1 flex-col gap-10">
         <MobileHero />
         <ModulesSection mobile />
@@ -963,7 +700,6 @@ function MobilePage() {
         <EventBanner mobile />
       </main>
       <HelpButton mobile />
-      <MobileBottomNavigation />
     </div>
   )
 }

@@ -12,10 +12,13 @@ import AuthPage from './components/AuthPage.jsx'
 import DashboardPage from './components/DashboardPage.jsx'
 import LandingPage from './components/LandingPage.jsx'
 import Shop from './components/Shop.jsx'
+import CartPage from './components/CartPage.jsx'
+import SiteNavigation from './components/SiteNavigation.jsx'
 import ListingDetailPage from './components/ListingDetailPage.jsx'
 import SellerProfilePage from './components/SellerProfilePage.jsx'
 import EventsPage from './components/events/EventPages.jsx'
 import EventDetailPage from './components/events/EventDetailPage.jsx'
+import { CartProvider } from './context/CartContext.jsx'
 
 function PageStatus({ title, message, action }) {
   return (
@@ -98,42 +101,53 @@ function ScrollToTop() {
 }
 
 function AppRoutes() {
+  const { pathname } = useLocation()
+  const dashboardLayout = pathname === '/dashboard'
+  const routeBottomPadding =
+    dashboardLayout || ['/', '/shop', '/cart'].includes(pathname)
+      ? ''
+      : 'pb-20 lg:pb-0'
+
   return (
     <>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/events/:id" element={<EventDetailPage />} />
-        <Route path="/listings/:id" element={<ListingDetailPage />} />
-        <Route path="/sellers/:sellerId" element={<SellerProfilePage />} />
-        <Route
-          path="/login"
-          element={
-            <PublicOnlyRoute>
-              <AuthPage mode="login" />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicOnlyRoute>
-              <AuthPage mode="register" />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      {!dashboardLayout && <SiteNavigation showSearch={pathname === '/'} />}
+      <div className={routeBottomPadding}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/listings/:id" element={<ListingDetailPage />} />
+          <Route path="/sellers/:sellerId" element={<SellerProfilePage />} />
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyRoute>
+                <AuthPage mode="login" />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicOnlyRoute>
+                <AuthPage mode="register" />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     </>
   )
 }
@@ -141,9 +155,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <CartProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </CartProvider>
     </BrowserRouter>
   )
 }

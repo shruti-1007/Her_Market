@@ -6,12 +6,14 @@ import { getListing } from '../api/listings.js'
 import { sendInquiry } from '../api/inquiries.js'
 import { errorMessage } from '../api/errors.js'
 import { formatPrice, inputClass } from '../constants.js'
+import { useCart } from '../context/useCart.js'
 import ListingImage from './ListingImage.jsx'
 
 export default function ListingDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const { user, status } = useAuth()
+  const { addToCart } = useCart()
   const trackedListing = useRef(null)
   const [listing, setListing] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -19,7 +21,7 @@ export default function ListingDetailPage() {
   const [feedback, setFeedback] = useState(null)
   const [sending, setSending] = useState(false)
   const [message, setMessage] = useState('')
-  const [quantity, setQuantity] = useState('1')
+  const [cartFeedbackVersion, setCartFeedbackVersion] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -37,6 +39,13 @@ export default function ListingDetailPage() {
     return () => { active = false }
   }, [id])
 
+  useEffect(() => {
+    if (!cartFeedbackVersion) return undefined
+
+    const timeoutId = window.setTimeout(() => setCartFeedbackVersion(0), 2000)
+    return () => window.clearTimeout(timeoutId)
+  }, [cartFeedbackVersion])
+
   async function handleSubmit(event) {
     event.preventDefault()
     setFeedback(null)
@@ -45,10 +54,9 @@ export default function ListingDetailPage() {
       await sendInquiry({
         listingId: id,
         message,
-        quantity: Number(quantity),
+        quantity: 1,
       })
       setMessage('')
-      setQuantity('1')
       setFeedback({ type: 'success', message: 'Your inquiry was sent successfully. The seller will respond soon.' })
     } catch (e) {
       setFeedback({ type: 'error', message: errorMessage(e) })
@@ -67,7 +75,12 @@ export default function ListingDetailPage() {
 
         {listing && (
           <div className="mt-6 grid gap-8 md:grid-cols-2">
-            <ListingImage src={listing.image} alt={listing.title} className="h-80 w-full rounded-xl border border-outline-variant" />
+            <ListingImage
+              src={listing.image}
+              alt={listing.title}
+              fit="contain"
+              className="aspect-[4/3] w-full rounded-xl border border-outline-variant bg-surface-container-low p-3"
+            />
 
             <div className="flex flex-col gap-4">
               <p className="font-label text-label-md capitalize text-primary">{listing.category}</p>
@@ -87,15 +100,29 @@ export default function ListingDetailPage() {
                 )}
                 {listing.location && <> · {listing.location}</>}
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  addToCart(listing)
+                  setCartFeedbackVersion((version) => version + 1)
+                }}
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 self-start rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  add_shopping_cart
+                </span>
+                Add to cart
+              </button>
+              {cartFeedbackVersion > 0 && (
+                <p role="status" className="font-body text-body-md text-on-surface-variant">
+                  Added to cart ✓
+                </p>
+              )}
 
               {status === 'authenticated' && user.role === 'customer' && (
                 <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
                   <h2 className="font-headline text-title-lg text-on-surface">Contact the seller</h2>
                   <textarea name="message" required minLength={3} maxLength={500} rows={3} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Is this still available?" className={inputClass} />
-                  <label className="flex flex-col gap-2">
-                    <span className="font-label text-label-md text-on-surface">Quantity</span>
-                    <input name="quantity" type="number" min="1" step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required className={inputClass} />
-                  </label>
                   {feedback && (
                     <p role={feedback.type === 'error' ? 'alert' : 'status'}
                        className={`rounded-lg px-4 py-3 font-body text-body-md ${feedback.type === 'error' ? 'bg-red-50 text-error' : 'bg-tertiary-container text-on-tertiary-container'}`}>
