@@ -57,6 +57,14 @@ export default function ListingDetailPage() {
     }
   }
 
+  const packCount = Number(quantity)
+  const estimatedTotal = listing && Number.isSafeInteger(packCount) && packCount > 0 && packCount <= 100000
+    ? listing.price * packCount
+    : null
+  const showEstimatedTotal = estimatedTotal !== null &&
+    Number.isFinite(estimatedTotal) &&
+    estimatedTotal <= Number.MAX_SAFE_INTEGER
+
   return (
     <main className="min-h-screen bg-surface px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -72,7 +80,12 @@ export default function ListingDetailPage() {
             <div className="flex flex-col gap-4">
               <p className="font-label text-label-md capitalize text-primary">{listing.category}</p>
               <h1 className="font-display text-headline-lg-mobile text-on-surface">{listing.title}</h1>
-              <p className="font-headline text-headline-md text-primary">{formatPrice(listing.price)}</p>
+              <p className="font-headline text-headline-md text-primary">
+                {formatPrice(listing.price)}
+                <span className="ml-2 font-body text-body-md text-on-surface-variant">
+                  per {listing.packSize || 'item'}
+                </span>
+              </p>
               {listing.description && (
                 <p className="font-body text-body-lg text-on-surface-variant">{listing.description}</p>
               )}
@@ -90,12 +103,42 @@ export default function ListingDetailPage() {
 
               {status === 'authenticated' && user.role === 'customer' && (
                 <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
-                  <h2 className="font-headline text-title-lg text-on-surface">Contact the seller</h2>
+                  <h2 className="font-headline text-title-lg text-on-surface">Ask the seller</h2>
                   <textarea name="message" required minLength={3} maxLength={500} rows={3} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Is this still available?" className={inputClass} />
                   <label className="flex flex-col gap-2">
-                    <span className="font-label text-label-md text-on-surface">Quantity</span>
-                    <input name="quantity" type="number" min="1" step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required className={inputClass} />
+                    <span className="font-label text-label-md text-on-surface">
+                      {listing.packSize ? 'How many packs would you like?' : 'How many items would you like?'}
+                    </span>
+                    {listing.packSize && (
+                      <span className="font-body text-sm text-on-surface-variant">Each pack: {listing.packSize}</span>
+                    )}
+                    <input
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      max="100000"
+                      step="1"
+                      inputMode="numeric"
+                      value={quantity}
+                      onChange={(event) => setQuantity(event.target.value)}
+                      required
+                      className={inputClass}
+                    />
                   </label>
+                  <div className="rounded-lg bg-primary-container p-3 text-on-primary-container" aria-live="polite">
+                    {showEstimatedTotal ? (
+                      <>
+                        <p className="font-label text-label-md">Estimated total: {formatPrice(estimatedTotal)}</p>
+                        <p className="mt-1 font-body text-sm">
+                          The seller will confirm the amount. No payment is taken here.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-body text-sm">
+                        Enter a whole number of {listing.packSize ? 'packs' : 'items'} to see the estimated total.
+                      </p>
+                    )}
+                  </div>
                   {feedback && (
                     <p role={feedback.type === 'error' ? 'alert' : 'status'}
                        className={`rounded-lg px-4 py-3 font-body text-body-md ${feedback.type === 'error' ? 'bg-red-50 text-error' : 'bg-tertiary-container text-on-tertiary-container'}`}>

@@ -18,12 +18,30 @@ exports.createInquiry = async (req, res) => {
     if (listing.availability !== "available")
       return res.status(400).json({ success: false, message: "This listing is no longer available" });
 
+    const packCount = quantity === undefined ? 1 : Number(quantity);
+    if (!Number.isSafeInteger(packCount) || packCount < 1 || packCount > 100000) {
+      return res.status(400).json({
+        success: false,
+        message: "Choose a whole number of packs between 1 and 100,000.",
+      });
+    }
+    const estimatedTotalNpr = listing.price * packCount;
+    if (!Number.isFinite(estimatedTotalNpr) || estimatedTotalNpr > Number.MAX_SAFE_INTEGER) {
+      return res.status(400).json({
+        success: false,
+        message: "The estimated total is too large. Please ask the seller for a smaller quantity.",
+      });
+    }
+
     const inquiry = await Inquiry.create({
       listing: listing._id,
       customer: req.user.id,
       seller: listing.seller, // taken from the listing, never from the request
       message,
-      quantity: quantity === undefined ? 1 : Number(quantity),
+      quantity: packCount,
+      packSize: listing.packSize || "1 item",
+      unitPriceNpr: listing.price,
+      estimatedTotalNpr,
     });
 
     res.status(201).json({ success: true, message: "Inquiry sent", inquiry });
@@ -48,7 +66,7 @@ exports.getSellerInquiries = async (req, res) => {
     const inquiries = await Inquiry.find(q)
       .sort({ createdAt: -1 })
       .populate("customer", "name email contact location")
-      .populate("listing", "title price image category availability");
+      .populate("listing", "title price packSize image category availability");
 
     res.json({ success: true, total: inquiries.length, inquiries });
   } catch (err) {
@@ -63,7 +81,7 @@ exports.getCustomerInquiries = async (req, res) => {
     const inquiries = await Inquiry.find({ customer: req.user.id })
       .sort({ createdAt: -1 })
       .populate("seller", "name contact location")
-      .populate("listing", "title price image category availability");
+      .populate("listing", "title price packSize image category availability");
 
     res.json({ success: true, total: inquiries.length, inquiries });
   } catch (err) {
@@ -98,7 +116,7 @@ exports.updateInquiryStatus = async (req, res) => {
 
     await inquiry.populate([
       { path: "customer", select: "name email contact location" },
-      { path: "listing", select: "title price image category availability" },
+      { path: "listing", select: "title price packSize image category availability" },
     ]);
 
     res.json({ success: true, message: `Inquiry ${status}`, inquiry });

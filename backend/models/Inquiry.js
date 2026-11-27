@@ -18,6 +18,9 @@ const inquirySchema = new mongoose.Schema(
       min: [1, "Quantity must be at least 1"],
       validate: { validator: Number.isInteger, message: "Quantity must be a whole number" },
     },
+    packSize: { type: String, trim: true, maxlength: 60, default: "" },
+    unitPriceNpr: { type: Number, min: 0 },
+    estimatedTotalNpr: { type: Number, min: 0 },
     status: {
       type: String,
       enum: { values: ["pending", "accepted", "rejected"], message: "Invalid status" },
