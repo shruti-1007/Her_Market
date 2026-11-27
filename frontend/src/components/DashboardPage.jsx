@@ -4,12 +4,18 @@ import { useAuth } from '../context/useAuth.js'
 import SellerListings from './dashboard/SellerListings.jsx'
 import SellerInquiries from './dashboard/SellerInquiries.jsx'
 import CustomerInquiries from './dashboard/CustomerInquiries.jsx'
+import OrgDashboard from './org/OrgDashboard.jsx'
+import AdminDashboard from './admin/AdminDashboard.jsx'
 
 function DashboardPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const isSeller = user.role === 'seller'
   const [tab, setTab] = useState('listings')
+
+  if (user.role === 'organization') return <OrgDashboard />
+  if (user.role === 'admin') return <AdminDashboard />
+
 
   function handleLogout() {
     logout()

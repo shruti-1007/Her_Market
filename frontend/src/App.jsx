@@ -11,6 +11,8 @@ import AuthPage from './components/AuthPage.jsx'
 import DashboardPage from './components/DashboardPage.jsx'
 import LandingPage from './components/LandingPage.jsx'
 import ListingDetailPage from './components/ListingDetailPage.jsx'
+import EventsPage from './components/events/EventPages.jsx'
+import EventDetailPage from './components/events/EventDetailPage.jsx'
 
 function PageStatus({ title, message, action }) {
   return (
@@ -86,6 +88,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/events" element={<EventsPage />} />
+      <Route path="/events/:id" element={<EventDetailPage />} />
       <Route path="/listings/:id" element={<ListingDetailPage />} />
       <Route
         path="/login"

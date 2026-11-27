@@ -25,3 +25,13 @@ exports.uploadImage = (req, res, next) => {
     next();
   });
 };
+// Accepts up to 4 files in the form field "images"
+exports.uploadImages = (req, res, next) => {
+  upload.array("images", 4)(req, res, (err) => {
+    if (err) {
+      const message = err.code === "LIMIT_UNEXPECTED_FILE" ? "You can upload up to 4 images" : err.message;
+      return res.status(400).json({ success: false, message });
+    }
+    next();
+  });
+};

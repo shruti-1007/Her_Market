@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
+import { inputClass, ORG_TYPES } from '../constants.js'
 
 function Icon({ children, className = '' }) {
   return (
@@ -55,6 +56,12 @@ function AccountTypeSelector({ role, onChange }) {
       description: 'Open a shop for your handmade products.',
       icon: 'storefront',
     },
+    {
+      value: 'organization',
+      title: 'I represent an organization',
+      description: 'Publish events and programs for the community.',
+      icon: 'apartment',
+    },
   ]
 
   return (
@@ -62,7 +69,7 @@ function AccountTypeSelector({ role, onChange }) {
       <legend className="font-label text-label-md text-on-surface">
         How will you use HerMarket?
       </legend>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {options.map((option) => (
           <label
             key={option.value}
@@ -117,9 +124,16 @@ function AuthPage({ mode }) {
     if (isRegister) {
       payload.name = formData.get('name')
       payload.role = role
-      if (role === 'seller') {
+      if (role !== 'customer') {
         payload.location = formData.get('location')
         payload.contact = formData.get('contact')
+      }
+      if (role === 'organization') {
+        payload.organizationType = formData.get('organizationType')
+        payload.description = formData.get('description')
+        payload.website = formData.get('website') || undefined
+      } else if (role === 'seller') {
+        payload.description = formData.get('description')
       }
     }
 
@@ -237,7 +251,7 @@ function AuthPage({ mode }) {
                 <Field
                   id="name"
                   name="name"
-                  label="Full name"
+                  label={role === 'organization' ? 'Organization name' : 'Full name'}
                   autoComplete="name"
                   placeholder="Your name"
                   required
@@ -274,14 +288,14 @@ function AuthPage({ mode }) {
               )}
             </div>
 
-            {isRegister && role === 'seller' && (
+            {isRegister && (role === 'seller' || role === 'organization') && (
               <>
                 <Field
                   id="location"
                   name="location"
-                  label="Your location"
+                  label={role === 'organization' ? 'Organization location' : 'Shop location'}
                   autoComplete="address-level2"
-                  placeholder="City or neighborhood"
+                  placeholder="City, town, or neighborhood"
                   required
                 />
                 <Field
@@ -293,6 +307,64 @@ function AuthPage({ mode }) {
                   placeholder="Your phone number"
                   required
                 />
+                {role === 'organization' && (
+                  <>
+                    <label htmlFor="organizationType" className="flex flex-col gap-2">
+                      <span className="font-label text-label-md text-on-surface">
+                        Organization type
+                      </span>
+                      <select
+                        id="organizationType"
+                        name="organizationType"
+                        defaultValue=""
+                        required
+                        className={inputClass}
+                      >
+                        <option value="" disabled>Select organization type</option>
+                        {ORG_TYPES.map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label htmlFor="description" className="flex flex-col gap-2">
+                      <span className="font-label text-label-md text-on-surface">
+                        About your organization
+                      </span>
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={4}
+                        minLength={10}
+                        maxLength={1000}
+                        required
+                        placeholder="Describe your organization and its work (at least 10 characters)"
+                        className="min-h-[120px] rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 font-body text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
+                    <Field
+                      id="website"
+                      name="website"
+                      type="url"
+                      label="Website (optional)"
+                      placeholder="https://example.org"
+                    />
+                  </>
+                )}
+                {role === 'seller' && (
+                  <label htmlFor="description" className="flex flex-col gap-2">
+                    <span className="font-label text-label-md text-on-surface">
+                      About your shop
+                    </span>
+                    <textarea
+                      id="description"
+                      name="description"
+                      rows={4}
+                      maxLength={1000}
+                      placeholder="Tell customers about your craft and the products you make (optional)"
+                      className="min-h-[120px] rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 font-body text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </label>
+                )}
               </>
             )}
 

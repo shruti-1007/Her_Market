@@ -5,85 +5,6 @@ import { errorMessage } from '../api/errors.js'
 import { formatPrice } from '../constants.js'
 import ListingImage from './ListingImage.jsx'
 
-function useListings(limit) {
-  const [state, setState] = useState({ loading: true, error: '', listings: [] })
-
-  useEffect(() => {
-    let active = true
-    getListings({ limit })
-      .then((d) => active && setState({ loading: false, error: '', listings: d.listings }))
-      .catch((e) => active && setState({ loading: false, error: errorMessage(e), listings: [] }))
-    return () => { active = false }
-  }, [limit])
-
-  return state
-}
-
-function ProductGrid({ state, className }) {
-  if (state.loading) return <p className="font-body text-body-md text-on-surface-variant">Loading products...</p>
-  if (state.error) return <p role="alert" className="font-body text-body-md text-error">{state.error}</p>
-  if (state.listings.length === 0)
-    return <p className="font-body text-body-md text-on-surface-variant">No products yet. Check back soon!</p>
-  return (
-    <div className={className}>
-      {state.listings.map((listing) => (
-        <ProductCard key={listing._id} listing={listing} />
-      ))}
-    </div>
-  )
-}
-
-function ProductCard({ listing }) {
-  return (
-    <article className="flex h-full flex-col justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
-      <div className="flex flex-col gap-3">
-        <ListingImage src={listing.image} alt={listing.title} className="h-48 w-full rounded-md" />
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-headline text-title-md text-on-surface">{listing.title}</h3>
-          <span className="shrink-0 font-headline text-title-md tabular-nums text-primary">
-            {formatPrice(listing.price)}
-          </span>
-        </div>
-        <p className="font-body text-body-md text-on-surface-variant">
-          By {listing.seller?.name} · {listing.location || listing.seller?.location}
-        </p>
-      </div>
-      <Link
-        to={`/listings/${listing._id}`}
-        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
-      >
-        <Icon>visibility</Icon>
-        View Product
-      </Link>
-    </article>
-  )
-}
-
-function DesktopProducts() {
-  const state = useListings(4)
-  return (
-    <section id="shop" className="bg-surface-container-low py-16">
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
-        <div className="flex flex-col gap-2">
-          <h2 className="font-headline text-headline-lg text-on-surface">Trending handmade products</h2>
-          <p className="font-body text-body-lg text-on-surface-variant">Freshly made by women in your community.</p>
-        </div>
-        <ProductGrid state={state} className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4" />
-      </div>
-    </section>
-  )
-}
-
-function MobileProducts() {
-  const state = useListings(2)
-  return (
-    <section className="flex flex-col gap-4 px-4">
-      <h2 className="font-headline text-headline-lg-mobile text-on-surface">Trending handmade</h2>
-      <ProductGrid state={state} className="grid grid-cols-1 gap-4" />
-    </section>
-  )
-}
-
 const modules = [
   {
     title: 'Buy & Sell',
@@ -225,6 +146,110 @@ function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
 }
 
+/* ---------- Real listings from the backend ---------- */
+
+function useListings(limit) {
+  const [state, setState] = useState({ loading: true, error: '', listings: [] })
+
+  useEffect(() => {
+    let active = true
+    getListings({ limit })
+      .then((d) => active && setState({ loading: false, error: '', listings: d.listings }))
+      .catch((e) => active && setState({ loading: false, error: errorMessage(e), listings: [] }))
+    return () => {
+      active = false
+    }
+  }, [limit])
+
+  return state
+}
+
+function ProductCard({ listing }) {
+  return (
+    <article className="flex h-full flex-col justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+      <div className="flex flex-col gap-3">
+        <ListingImage src={listing.image} alt={listing.title} className="h-48 w-full rounded-md" />
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-headline text-title-md text-on-surface">{listing.title}</h3>
+          <span className="shrink-0 font-headline text-title-md tabular-nums text-primary">
+            {formatPrice(listing.price)}
+          </span>
+        </div>
+        <p className="font-body text-body-md text-on-surface-variant">
+          By {listing.seller?.name} · {listing.location || listing.seller?.location}
+        </p>
+      </div>
+      <Link
+        to={`/listings/${listing._id}`}
+        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
+      >
+        <Icon>visibility</Icon>
+        View Product
+      </Link>
+    </article>
+  )
+}
+
+function ProductGrid({ state, className }) {
+  if (state.loading)
+    return <p className="font-body text-body-md text-on-surface-variant">Loading products...</p>
+  if (state.error)
+    return (
+      <p role="alert" className="font-body text-body-md text-error">
+        {state.error}
+      </p>
+    )
+  if (state.listings.length === 0)
+    return (
+      <p className="font-body text-body-md text-on-surface-variant">
+        No products yet. Check back soon!
+      </p>
+    )
+  return (
+    <div className={className}>
+      {state.listings.map((listing) => (
+        <ProductCard key={listing._id} listing={listing} />
+      ))}
+    </div>
+  )
+}
+
+function DesktopProducts() {
+  const state = useListings(4)
+  return (
+    <section id="shop" className="bg-surface-container-low py-16">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-headline text-headline-lg text-on-surface">
+            Trending handmade products
+          </h2>
+          <p className="font-body text-body-lg text-on-surface-variant">
+            Freshly made by women in your community.
+          </p>
+        </div>
+        <ProductGrid
+          state={state}
+          className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4"
+        />
+      </div>
+    </section>
+  )
+}
+
+function MobileProducts() {
+  const state = useListings(2)
+  return (
+    <section id="shop-mobile" className="flex flex-col gap-4 px-4">
+      <h2 className="font-headline text-headline-lg-mobile text-on-surface">
+        Trending handmade
+      </h2>
+      <ProductGrid state={state} className="grid grid-cols-1 gap-4" />
+    </section>
+  )
+}
+
+/* ---------- Layout pieces ---------- */
+
 function Brand({ compact = false }) {
   return (
     <a
@@ -288,6 +313,9 @@ function DesktopHeader() {
           <a href="#connect" className="desktop-nav-link">
             Connect
           </a>
+          <AppLink href="/events" className="desktop-nav-link">
+            Events
+          </AppLink>
           <a href="#learn" className="desktop-nav-link">
             Learn
           </a>
@@ -358,6 +386,7 @@ function MobileHeader() {
           ['business', 'My Business', 'calculate'],
           ['connect', 'Connect', 'diversity_3'],
           ['learn', 'Learn', 'menu_book'],
+          ['/events', 'Events', 'event'],
           ['/login', 'Login / Sign up', 'login'],
         ].map(([href, label, icon], index) => (
           <AppLink
@@ -431,6 +460,20 @@ function DesktopHero() {
   )
 }
 
+function SearchField({ placeholder, className }) {
+  return (
+    <label className="relative flex w-full items-center">
+      <span className="sr-only">Search handmade products</span>
+      <Icon className="absolute left-4 text-on-surface-variant">search</Icon>
+      <input
+        type="search"
+        placeholder={placeholder}
+        className={`w-full font-body text-on-surface outline-none placeholder:text-outline ${className}`}
+      />
+    </label>
+  )
+}
+
 function MobileHero() {
   return (
     <>
@@ -455,7 +498,7 @@ function MobileHero() {
               <Icon>storefront</Icon>
               I want to Sell
             </AppLink>
-            <a href="#shop" className="mobile-hero-action bg-primary text-on-primary">
+            <a href="#shop-mobile" className="mobile-hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
               I want to Buy
             </a>
@@ -469,20 +512,6 @@ function MobileHero() {
         />
       </section>
     </>
-  )
-}
-
-function SearchField({ placeholder, className }) {
-  return (
-    <label className="relative flex w-full items-center">
-      <span className="sr-only">Search handmade products</span>
-      <Icon className="absolute left-4 text-on-surface-variant">search</Icon>
-      <input
-        type="search"
-        placeholder={placeholder}
-        className={`w-full font-body text-on-surface outline-none placeholder:text-outline ${className}`}
-      />
-    </label>
   )
 }
 
@@ -542,11 +571,7 @@ function ModulesSection({ mobile = false }) {
   return (
     <section
       id={mobile ? undefined : 'modules'}
-      className={
-        mobile
-          ? 'flex flex-col gap-4 px-4'
-          : 'bg-surface py-16'
-      }
+      className={mobile ? 'flex flex-col gap-4 px-4' : 'bg-surface py-16'}
     >
       {!mobile && (
         <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
@@ -568,9 +593,7 @@ function ModulesSection({ mobile = false }) {
                     <Icon className="text-headline-sm">{item.icon}</Icon>
                   </span>
                   <h3 className="font-headline text-title-lg">{item.title}</h3>
-                  <p className="text-pretty font-body text-body-md">
-                    {item.description}
-                  </p>
+                  <p className="text-pretty font-body text-body-md">{item.description}</p>
                 </div>
                 <span className="inline-flex items-center gap-1 font-label text-label-lg">
                   {item.action}
@@ -599,12 +622,8 @@ function ModulesSection({ mobile = false }) {
                   <Icon>{item.icon}</Icon>
                 </span>
                 <span className="flex flex-col">
-                  <span className="font-headline text-title-lg">
-                    {item.title}
-                  </span>
-                  <span className="font-body text-body-md">
-                    {item.mobileDescription}
-                  </span>
+                  <span className="font-headline text-title-lg">{item.title}</span>
+                  <span className="font-body text-body-md">{item.mobileDescription}</span>
                 </span>
               </a>
             ))}
@@ -626,9 +645,7 @@ function MakerCard({ maker }) {
         />
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
-            <h3 className="font-headline text-title-lg text-on-surface">
-              {maker.name}
-            </h3>
+            <h3 className="font-headline text-title-lg text-on-surface">{maker.name}</h3>
             <Icon className="text-title-md text-success" filled>
               verified
             </Icon>
@@ -685,14 +702,10 @@ function StoryCard({ story }) {
         className="h-28 w-28 shrink-0 rounded-lg object-cover"
       />
       <div className="flex flex-col gap-3">
-        <p className="text-pretty font-body text-body-lg text-on-surface">
-          {story.quote}
-        </p>
+        <p className="text-pretty font-body text-body-lg text-on-surface">{story.quote}</p>
         <div>
           <p className="font-headline text-title-md text-primary">{story.name}</p>
-          <p className="font-body text-body-md text-on-surface-variant">
-            {story.detail}
-          </p>
+          <p className="font-body text-body-md text-on-surface-variant">{story.detail}</p>
         </div>
       </div>
     </article>
@@ -719,7 +732,10 @@ function StoriesSection() {
 
 function EventBanner({ mobile = false }) {
   return (
-    <section id={mobile ? undefined : 'connect'} className={mobile ? 'px-4' : 'bg-surface py-12'}>
+    <section
+      id={mobile ? undefined : 'connect'}
+      className={mobile ? 'px-4' : 'bg-surface py-12'}
+    >
       <div className={mobile ? '' : 'mx-auto max-w-[1200px] px-6'}>
         <div
           className={`border border-outline-variant bg-secondary-container text-on-secondary-container ${
@@ -738,9 +754,7 @@ function EventBanner({ mobile = false }) {
             </span>
             <div className="flex flex-col gap-2">
               <h2
-                className={`font-headline ${
-                  mobile ? 'text-title-lg' : 'text-headline-md'
-                }`}
+                className={`font-headline ${mobile ? 'text-title-lg' : 'text-headline-md'}`}
               >
                 {mobile
                   ? 'Local Craft Fair · Dec 6'
@@ -759,21 +773,21 @@ function EventBanner({ mobile = false }) {
               <p className="font-body text-body-md">
                 Patan Community Courtyard · Free tables for first-time sellers!
               </p>
-              <button
-                type="button"
-                className="min-h-[48px] w-full cursor-pointer rounded-lg border border-outline-variant bg-surface-container-lowest font-label text-label-lg text-on-surface"
+              <AppLink
+                href="/events"
+                className="flex min-h-[48px] w-full items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest font-label text-label-lg text-on-surface"
               >
                 See Local Events
-              </button>
+              </AppLink>
             </>
           ) : (
-            <button
-              type="button"
+            <AppLink
+              href="/events"
               className="inline-flex min-h-[52px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-6 py-3 font-label text-label-lg text-on-surface shadow-sm transition-colors duration-state-change hover:bg-surface-container-low"
             >
               <Icon>calendar_month</Icon>
               See Local Events
-            </button>
+            </AppLink>
           )}
         </div>
       </div>
@@ -794,13 +808,13 @@ function OrganizationBanner() {
             host local training workshops, and sponsor zero-fee starter shops.
           </p>
         </div>
-        <button
-          type="button"
+        <AppLink
+          href="/register"
           className="inline-flex min-h-[56px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-cta px-8 py-3 font-label text-label-lg text-on-cta shadow-md transition-colors duration-state-change hover:opacity-95"
         >
           <Icon>handshake</Icon>
           Partner With Us
-        </button>
+        </AppLink>
       </div>
     </section>
   )
@@ -818,18 +832,19 @@ function DesktopFooter() {
           </p>
         </div>
         <div className="flex flex-col gap-2">
-          <h3 className="font-headline text-title-md text-on-surface">
-            Marketplace
-          </h3>
+          <h3 className="font-headline text-title-md text-on-surface">Marketplace</h3>
           <a href="#about" className="footer-link">
             About HerMarket
           </a>
           <a href="#shop" className="footer-link">
             Browse Products
           </a>
-          <a href="#orgs" className="footer-link">
+          <AppLink href="/events" className="footer-link">
+            Community Events
+          </AppLink>
+          <AppLink href="/register" className="footer-link">
             For Organizations
-          </a>
+          </AppLink>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="font-headline text-title-md text-on-surface">Support</h3>
@@ -895,9 +910,9 @@ function HelpButton({ mobile = false }) {
 function MobileBottomNavigation() {
   const links = [
     ['#home', 'Home', 'home', true],
-    ['#shop', 'Shop', 'shopping_bag'],
+    ['#shop-mobile', 'Shop', 'shopping_bag'],
     ['/register', 'Sell', 'add_circle', true],
-    ['#connect', 'Connect', 'diversity_3'],
+    ['/events', 'Events', 'event'],
     ['#learn', 'Learn', 'menu_book'],
   ]
 
@@ -907,7 +922,7 @@ function MobileBottomNavigation() {
       className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 gap-1 border-t border-outline-variant bg-surface-container-lowest px-2 py-2 lg:hidden"
     >
       {links.map(([href, label, icon, highlighted], index) => (
-        <a
+        <AppLink
           key={href}
           href={href}
           className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg ${
@@ -920,11 +935,13 @@ function MobileBottomNavigation() {
         >
           <Icon filled={index === 0}>{icon}</Icon>
           <span className="font-label text-label-md">{label}</span>
-        </a>
+        </AppLink>
       ))}
     </nav>
   )
 }
+
+/* ---------- Pages ---------- */
 
 function DesktopPage() {
   return (
