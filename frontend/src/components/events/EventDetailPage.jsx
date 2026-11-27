@@ -4,7 +4,6 @@ import { getEvent } from '../../api/events.js'
 import { imageUrl } from '../../api/client.js'
 import { errorMessage } from '../../api/errors.js'
 import { EVENT_CATEGORIES, ORG_TYPES, formatEventWhen, labelOf } from '../../constants.js'
-import PageHeader from './PageHeader.jsx'
 import VerifiedBadge from './VerifiedBadge.jsx'
 
 function Lightbox({ src, onClose }) {
@@ -59,7 +58,6 @@ export default function EventDetailPage() {
 
   return (
     <main className="min-h-screen bg-surface">
-      <PageHeader />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <Link to="/events" className="font-label text-label-md text-primary hover:underline">← All events</Link>
 

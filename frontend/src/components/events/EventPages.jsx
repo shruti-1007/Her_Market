@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { getEvents } from '../../api/events.js'
 import { errorMessage } from '../../api/errors.js'
 import { EVENT_CATEGORIES, inputClass } from '../../constants.js'
-import PageHeader from './PageHeader.jsx'
 import EventCard from './EventCard.jsx'
 
 const emptyFilters = { search: '', category: '', location: '', date: '' }
@@ -43,7 +42,6 @@ export default function EventsPage() {
 
   return (
     <main className="min-h-screen bg-surface">
-      <PageHeader />
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <p className="font-label text-label-md text-primary">COMMUNITY</p>
         <h1 className="mt-1 font-display text-headline-lg-mobile text-on-surface sm:text-display-lg">

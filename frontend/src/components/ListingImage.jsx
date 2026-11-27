@@ -1,6 +1,6 @@
 import { imageUrl } from '../api/client.js'
 
-export default function ListingImage({ src, alt, className = '' }) {
+export default function ListingImage({ src, alt, className = '', fit = 'cover' }) {
   if (!src) {
     return (
       <div className={`flex items-center justify-center bg-surface-container-low text-on-surface-variant ${className}`}>
@@ -8,5 +8,6 @@ export default function ListingImage({ src, alt, className = '' }) {
       </div>
     )
   }
-  return <img src={imageUrl(src)} alt={alt} className={`object-cover ${className}`} />
+  const objectFit = fit === 'contain' ? 'object-contain' : 'object-cover'
+  return <img src={imageUrl(src)} alt={alt} className={`${objectFit} ${className}`} />
 }

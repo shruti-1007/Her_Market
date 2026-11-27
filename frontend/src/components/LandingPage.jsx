@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+import { ProductCard } from './ProductCatalog.jsx'
+import useListings from './useListings.js'
+import { Brand, Icon, LanguageButton } from './SiteNavigation.jsx'
+
 import { getListings } from '../api/listings.js'
 import { getEvents } from '../api/events.js'
 import { errorMessage } from '../api/errors.js'
 import { EVENT_CATEGORIES, formatEventWhen, formatPrice, labelOf } from '../constants.js'
 import { useAuth } from '../context/useAuth.js'
 import ListingImage from './ListingImage.jsx'
+
 
 const modules = [
   {
@@ -123,137 +128,12 @@ const stories = [
   },
 ]
 
-function Icon({ children, className = '', filled = false }) {
-  return (
-    <span
-      className={`material-symbols-outlined ${className}`}
-      style={filled ? { fontVariationSettings: "'FILL' 1" } : undefined}
-      aria-hidden="true"
-    >
-      {children}
-    </span>
-  )
-}
-
 function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
 }
 
-function AccountMenu({ mobile = false }) {
-  const { user, status, logout } = useAuth()
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    if (!open) return undefined
-
-    const closeOnOutsideClick = (event) => {
-      if (!menuRef.current?.contains(event.target)) setOpen(false)
-    }
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('pointerdown', closeOnOutsideClick)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
-
-  if (status !== 'authenticated' || !user) {
-    if (mobile) {
-      return status === 'checking' ? (
-        <span aria-label="Checking account" className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant">
-          <Icon>person</Icon>
-        </span>
-      ) : null
-    }
-
-    return status === 'checking' ? (
-      <span aria-label="Checking account" className="hidden h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant xl:flex">
-        <Icon>person</Icon>
-      </span>
-    ) : (
-      <AppLink
-        href="/login"
-        className="hidden min-h-[48px] shrink-0 items-center whitespace-nowrap rounded-lg px-3 font-label text-label-lg text-primary transition-colors duration-state-change hover:bg-primary-container xl:flex"
-      >
-        Login / Sign up
-      </AppLink>
-    )
-  }
-
-  const displayName = user.name || 'Account'
-  const role = user.role ? `${user.role[0].toUpperCase()}${user.role.slice(1)}` : 'Account'
-
-  return (
-    <div ref={menuRef} className={`relative ${mobile ? '' : 'hidden xl:block'}`}>
-      <button
-        type="button"
-        aria-label={`Open account menu for ${displayName}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        className="flex h-11 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest p-1 pr-2 text-primary shadow-sm transition-colors hover:bg-primary-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-      >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-label text-label-md text-on-primary">
-          {displayName.charAt(0).toUpperCase()}
-        </span>
-        {!mobile && <Icon className="text-title-md">expand_more</Icon>}
-      </button>
-
-      <div
-        role="menu"
-        aria-hidden={!open}
-        className={`absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg transition duration-150 ease-out ${
-          open
-            ? 'visible translate-y-0 scale-100 opacity-100'
-            : 'invisible -translate-y-1 scale-95 opacity-0'
-        }`}
-      >
-        <div className="rounded-lg bg-surface-container-low px-4 py-3">
-          <p className="truncate font-label text-label-md text-on-surface">{displayName}</p>
-          <p className="mt-1 font-body text-sm text-on-surface-variant">{role} account</p>
-        </div>
-        <div className="mt-2 flex flex-col gap-1">
-          <Link
-            to="/dashboard"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
-          >
-            <Icon className="text-title-md">dashboard</Icon>
-            Dashboard
-          </Link>
-          {user.role === 'seller' && user.id && (
-            <Link
-              to={`/sellers/${user.id}`}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 font-label text-label-md text-on-surface transition-colors hover:bg-primary-container"
-            >
-              <Icon className="text-title-md">storefront</Icon>
-              Public seller profile
-            </Link>
-          )}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setOpen(false); logout() }}
-            className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 text-left font-label text-label-md text-error transition-colors hover:bg-red-50"
-          >
-            <Icon className="text-title-md">logout</Icon>
-            Log out
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /* ---------- Real listings from the backend ---------- */
+
 
 function useListings(limit) {
   const [state, setState] = useState({ loading: true, error: '', listings: [] })
@@ -320,6 +200,7 @@ function ProductCard({ listing }) {
   )
 }
 
+
 function ProductGrid({ state, className }) {
   if (state.loading)
     return <p className="font-body text-body-md text-on-surface-variant">Loading products...</p>
@@ -375,173 +256,6 @@ function MobileProducts() {
       </h2>
       <ProductGrid state={state} className="grid grid-cols-1 gap-4" />
     </section>
-  )
-}
-
-/* ---------- Layout pieces ---------- */
-
-function Brand({ compact = false }) {
-  return (
-    <a
-      href="#home"
-      className={`flex items-center ${compact ? 'gap-2' : 'gap-3'} shrink-0 rounded-lg`}
-    >
-      <span
-        className={`flex items-center justify-center rounded-lg bg-primary text-on-primary ${
-          compact ? 'h-10 w-10' : 'h-11 w-11 shadow-sm'
-        }`}
-      >
-        <Icon className={compact ? '' : 'text-headline-sm'}>storefront</Icon>
-      </span>
-      <span className="font-headline text-title-lg text-primary">HerMarket</span>
-    </a>
-  )
-}
-
-function LanguageButton({ mobile = false }) {
-  const [language, setLanguage] = useState('EN / नेपाली')
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        setLanguage((current) =>
-          current.includes('EN') ? 'नेपाली / EN' : 'EN / नेपाली',
-        )
-      }
-      aria-label="Switch language between English and Nepali"
-      className={`flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface ${
-        mobile
-          ? 'min-h-[44px] px-3 font-label text-label-md'
-          : 'min-h-[48px] px-3 font-label text-label-md transition-colors duration-state-change hover:bg-surface-container-low'
-      }`}
-    >
-      <Icon className="text-title-md">translate</Icon>
-      <span>{mobile ? 'EN' : language}</span>
-    </button>
-  )
-}
-
-function DesktopHeader() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest shadow-sm">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
-        <Brand />
-        <nav aria-label="Main navigation" className="hidden shrink-0 items-center gap-1 lg:flex">
-          <a
-            href="#home"
-            className="flex min-h-[48px] shrink-0 items-center rounded-lg bg-primary-container px-3 font-label text-label-lg text-on-primary-container"
-          >
-            Home
-          </a>
-          <a href="#shop" className="desktop-nav-link">
-            Shop
-          </a>
-         
-        
-          <AppLink href="/events" className="desktop-nav-link">
-            Events
-          </AppLink>
-         
-        </nav>
-        <div className="hidden max-w-[210px] flex-1 xl:flex">
-          <label className="relative flex w-full items-center">
-            <span className="sr-only">Search handmade products</span>
-            <Icon className="absolute left-3 text-on-surface-variant">search</Icon>
-            <input
-              type="search"
-              placeholder="Search goods..."
-              className="min-h-[48px] w-full rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-4 font-body text-body-md text-on-surface outline-none placeholder:text-outline focus:border-primary focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <LanguageButton />
-          <AccountMenu />
-          <AppLink
-            href="/register"
-            className="hidden min-h-[48px] shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-cta px-4 py-3 font-label text-label-lg text-on-cta shadow-sm transition-colors duration-state-change hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary xl:inline-flex"
-          >
-            <Icon>add_business</Icon>
-            Sell Your Products
-          </AppLink>
-        </div>
-      </div>
-    </header>
-  )
-}
-
-function MobileHeader() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const { status } = useAuth()
-
-  const closeMenu = () => setMenuOpen(false)
-
-  return (
-    <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest shadow-sm">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg bg-surface-container-low text-on-surface"
-          >
-            <Icon className="text-headline-sm">{menuOpen ? 'close' : 'menu'}</Icon>
-          </button>
-          <Brand compact />
-        </div>
-        <div className="flex items-center gap-2">
-          <LanguageButton mobile />
-          <AccountMenu mobile />
-        </div>
-      </div>
-      <nav
-        aria-label="Mobile menu"
-        className={`${
-          menuOpen ? 'flex' : 'hidden'
-        } flex-col gap-2 border-t border-outline-variant bg-surface-container-lowest px-4 py-4`}
-      >
-        {[
-          ['home', 'Home', 'home'],
-          ['shop', 'Shop Handmade', 'shopping_bag'],
-          ['/events', 'Events', 'event'],
-        ].map(([href, label, icon], index) => (
-          <AppLink
-            key={href}
-            href={href.startsWith('/') ? href : `#${href}`}
-            onClick={closeMenu}
-            className={`flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg ${
-              index === 0
-                ? 'bg-primary-container text-on-primary-container'
-                : 'text-on-surface hover:bg-surface-container-low'
-            }`}
-          >
-            <Icon>{icon}</Icon>
-            {label}
-          </AppLink>
-        ))}
-        {status !== 'authenticated' && status !== 'checking' && (
-          <AppLink
-            href="/login"
-            onClick={closeMenu}
-            className="flex min-h-[48px] items-center gap-3 rounded-lg px-4 font-label text-label-lg text-on-surface hover:bg-surface-container-low"
-          >
-            <Icon>login</Icon>
-            Login / Sign up
-          </AppLink>
-        )}
-        <AppLink
-          href="/register"
-          onClick={closeMenu}
-          className="mt-2 flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-cta px-4 font-label text-label-lg text-on-cta"
-        >
-          <Icon>add_business</Icon>
-          Sell Your Products
-        </AppLink>
-      </nav>
-    </header>
   )
 }
 
@@ -1120,46 +834,11 @@ function HelpButton({ mobile = false }) {
   )
 }
 
-function MobileBottomNavigation() {
-  const links = [
-    ['#home', 'Home', 'home', true],
-    ['#shop-mobile', 'Shop', 'shopping_bag'],
-    ['/register', 'Sell', 'add_circle', true],
-    ['/events', 'Events', 'event'],
-    
-  ]
-
-  return (
-    <nav
-      aria-label="Bottom navigation"
-      className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 gap-1 border-t border-outline-variant bg-surface-container-lowest px-2 py-2 lg:hidden"
-    >
-      {links.map(([href, label, icon, highlighted], index) => (
-        <AppLink
-          key={href}
-          href={href}
-          className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg ${
-            index === 0
-              ? 'bg-primary-container text-on-primary-container'
-              : highlighted
-                ? 'bg-cta text-on-cta'
-                : 'text-on-surface-variant'
-          }`}
-        >
-          <Icon filled={index === 0}>{icon}</Icon>
-          <span className="font-label text-label-md">{label}</span>
-        </AppLink>
-      ))}
-    </nav>
-  )
-}
-
 /* ---------- Pages ---------- */
 
 function DesktopPage({ event, eventError }) {
   return (
     <div className="hidden min-h-screen flex-col pb-24 lg:flex">
-      <DesktopHeader />
       <main className="flex-1">
         <DesktopHero />
         <StepsSection />
@@ -1179,7 +858,6 @@ function DesktopPage({ event, eventError }) {
 function MobilePage({ event, eventError }) {
   return (
     <div className="flex min-h-screen flex-col pb-24 lg:hidden">
-      <MobileHeader />
       <main className="flex flex-1 flex-col gap-10">
         <MobileHero />
         <ModulesSection mobile />
@@ -1187,7 +865,6 @@ function MobilePage({ event, eventError }) {
         <EventBanner event={event} error={eventError} mobile />
       </main>
       <HelpButton mobile />
-      <MobileBottomNavigation />
     </div>
   )
 }
