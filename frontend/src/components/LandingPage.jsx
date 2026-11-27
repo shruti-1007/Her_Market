@@ -1,16 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { ProductCard } from './ProductCatalog.jsx'
-import useListings from './useListings.js'
 import { Brand, Icon, LanguageButton } from './SiteNavigation.jsx'
+import ListingImage from './ListingImage.jsx'
 
 import { getListings } from '../api/listings.js'
 import { getEvents } from '../api/events.js'
 import { errorMessage } from '../api/errors.js'
 import { EVENT_CATEGORIES, formatEventWhen, formatPrice, labelOf } from '../constants.js'
-import { useAuth } from '../context/useAuth.js'
-import ListingImage from './ListingImage.jsx'
-
 
 const modules = [
   {
@@ -43,7 +40,6 @@ const modules = [
     color: 'secondary',
     action: 'Meet makers',
   },
- 
 ]
 
 const steps = [
@@ -63,8 +59,7 @@ const steps = [
   },
   {
     title: '3. Deliver & grow your shop',
-    description:
-      'Arrange pickup or delivery, see your monthly earnings clearly.',
+    description: 'Arrange pickup or delivery, see your monthly earnings clearly.',
     icon: 'savings',
     color: 'tertiary',
   },
@@ -128,12 +123,13 @@ const stories = [
   },
 ]
 
+const POPUP_KEY = 'hermarket_popup_dismissed'
+
 function AppLink({ href, ...props }) {
   return href.startsWith('/') ? <Link to={href} {...props} /> : <a href={href} {...props} />
 }
 
-/* ---------- Real listings from the backend ---------- */
-
+/* ---------- Data from the backend ---------- */
 
 function useListings(limit) {
   const [state, setState] = useState({ loading: true, error: '', listings: [] })
@@ -142,7 +138,9 @@ function useListings(limit) {
     let active = true
     getListings({ limit })
       .then((d) => active && setState({ loading: false, error: '', listings: d.listings }))
-      .catch((e) => active && setState({ loading: false, error: errorMessage(e), listings: [] }))
+      .catch((e) =>
+        active && setState({ loading: false, error: errorMessage(e), listings: [] }),
+      )
     return () => {
       active = false
     }
@@ -163,11 +161,15 @@ function useUpcomingEvent() {
       .catch((err) => {
         if (active) setState({ event: null, error: errorMessage(err) })
       })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   return state
 }
+
+/* ---------- Products ---------- */
 
 function ProductCard({ listing }) {
   return (
@@ -199,7 +201,6 @@ function ProductCard({ listing }) {
     </article>
   )
 }
-
 
 function ProductGrid({ state, className }) {
   if (state.loading)
@@ -258,6 +259,8 @@ function MobileProducts() {
     </section>
   )
 }
+
+/* ---------- Hero ---------- */
 
 function DesktopHero() {
   return (
@@ -357,6 +360,8 @@ function MobileHero() {
   )
 }
 
+/* ---------- Content sections ---------- */
+
 function SectionHeading({ title, description, mobile = false }) {
   return (
     <div className="flex max-w-2xl flex-col gap-2">
@@ -395,9 +400,7 @@ function StepsSection() {
               >
                 <Icon className="text-headline-sm">{step.icon}</Icon>
               </span>
-              <h3 className="font-headline text-title-lg text-on-surface">
-                {step.title}
-              </h3>
+              <h3 className="font-headline text-title-lg text-on-surface">{step.title}</h3>
               <p className="text-pretty font-body text-body-md text-on-surface-variant">
                 {step.description}
               </p>
@@ -421,7 +424,7 @@ function ModulesSection({ mobile = false }) {
             title="Everything you need in one place"
             description="Each part of HerMarket has its own color so you always know where you are."
           />
-          <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
             {modules.map((item) => (
               <a
                 key={item.title}
@@ -503,9 +506,7 @@ function MakerCard({ maker }) {
           </p>
         </div>
       </div>
-      <p className="text-pretty font-body text-body-md text-on-surface-variant">
-        {maker.quote}
-      </p>
+      <p className="text-pretty font-body text-body-md text-on-surface-variant">{maker.quote}</p>
       <a
         href={maker.href}
         className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary-container px-4 font-label text-label-lg text-on-primary-container transition-opacity duration-state-change hover:opacity-90"
@@ -572,17 +573,31 @@ function StoriesSection() {
   )
 }
 
+/* ---------- Events ---------- */
+
 function EventBanner({ event, error, mobile = false }) {
   if (!event) {
     return (
-      <section id={mobile ? undefined : 'connect'} className={mobile ? 'px-4' : 'bg-surface py-12'}>
-        <div className={`rounded-lg border border-outline-variant bg-surface-container-lowest p-5 font-body text-body-md text-on-surface-variant ${mobile ? '' : 'mx-auto max-w-[1200px]'}`}>
-          {error ? 'Upcoming events are unavailable right now.' : 'No upcoming events have been posted yet.'}{' '}
-          <AppLink href="/events" className="font-label text-primary underline">Browse all events</AppLink>
+      <section
+        id={mobile ? undefined : 'connect'}
+        className={mobile ? 'px-4' : 'bg-surface py-12'}
+      >
+        <div
+          className={`rounded-lg border border-outline-variant bg-surface-container-lowest p-5 font-body text-body-md text-on-surface-variant ${
+            mobile ? '' : 'mx-auto max-w-[1200px]'
+          }`}
+        >
+          {error
+            ? 'Upcoming events are unavailable right now.'
+            : 'No upcoming events have been posted yet.'}{' '}
+          <AppLink href="/events" className="font-label text-primary underline">
+            Browse all events
+          </AppLink>
         </div>
       </section>
     )
   }
+
   const summary = event.description?.trim().slice(0, 240)
 
   return (
@@ -607,9 +622,7 @@ function EventBanner({ event, error, mobile = false }) {
               <Icon className={mobile ? '' : 'text-headline-md'}>event</Icon>
             </span>
             <div className="flex flex-col gap-2">
-              <h2
-                className={`font-headline ${mobile ? 'text-title-lg' : 'text-headline-md'}`}
-              >
+              <h2 className={`font-headline ${mobile ? 'text-title-lg' : 'text-headline-md'}`}>
                 {event.title}
               </h2>
               <p className="font-label text-label-md">
@@ -619,7 +632,10 @@ function EventBanner({ event, error, mobile = false }) {
               </p>
               {!mobile && (
                 <p className="text-pretty font-body text-body-lg">
-                  {summary || (event.isOnline ? 'Join this upcoming online event.' : `Join us at ${event.location}.`)}
+                  {summary ||
+                    (event.isOnline
+                      ? 'Join this upcoming online event.'
+                      : `Join us at ${event.location}.`)}
                 </p>
               )}
             </div>
@@ -726,6 +742,9 @@ function EventPopup({ event, onClose }) {
     </div>
   )
 }
+
+/* ---------- Footer & misc ---------- */
+
 function OrganizationBanner() {
   return (
     <section className="bg-primary py-16 text-on-primary">
@@ -782,13 +801,9 @@ function DesktopFooter() {
           <a href="#help" className="footer-link">
             Help Center
           </a>
-         
-        
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="font-headline text-title-md text-on-surface">
-            Language & Community
-          </h3>
+          <h3 className="font-headline text-title-md text-on-surface">Language & Community</h3>
           <LanguageButton />
           <div className="flex items-center gap-3 pt-1">
             {[
@@ -871,19 +886,21 @@ function MobilePage({ event, eventError }) {
 
 function LandingPage() {
   const { event, error } = useUpcomingEvent()
-  const [popupDismissed, setPopupDismissed] = useState(false)
-  const showPopup = Boolean(event && !popupDismissed)
+  const [dismissedId, setDismissedId] = useState(() =>
+    window.sessionStorage.getItem(POPUP_KEY),
+  )
+  const showPopup = Boolean(event && dismissedId !== event._id)
+
+  function closePopup() {
+    window.sessionStorage.setItem(POPUP_KEY, event._id)
+    setDismissedId(event._id)
+  }
 
   return (
     <>
       <DesktopPage event={event} eventError={error} />
       <MobilePage event={event} eventError={error} />
-      {showPopup && event && (
-        <EventPopup
-          event={event}
-          onClose={() => setPopupDismissed(true)}
-        />
-      )}
+      {showPopup && <EventPopup event={event} onClose={closePopup} />}
     </>
   )
 }
