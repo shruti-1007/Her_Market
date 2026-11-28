@@ -281,11 +281,11 @@ function DesktopHero() {
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <AppLink href="/register" className="hero-action bg-cta text-on-cta">
               <Icon>storefront</Icon>
-              {t('I want to Sell')}
+              {t('Sell')}
             </AppLink>
             <a href="#shop" className="hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
-              {t('I want to Buy')}
+              {t(' Buy')}
             </a>
           </div>
           <p className="flex items-center gap-2 font-body text-body-md text-on-surface-variant">
