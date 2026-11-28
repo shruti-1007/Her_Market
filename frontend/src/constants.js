@@ -1,10 +1,16 @@
+import i18n from './i18n.js'
+
 export const CATEGORIES = [
   ['food', 'Food'], ['crafts', 'Crafts'], ['clothing', 'Clothing'],
   ['jewelry', 'Jewelry'], ['home', 'Home'], ['beauty', 'Beauty'],
   ['education', 'Education'], ['repair', 'Repair'], ['other', 'Other'],
 ]
 
-export const formatPrice = (n) => `Rs ${Number(n).toLocaleString('en-IN')}`
+export const formatNumber = (n, options) =>
+  Number(n).toLocaleString(i18n.language === 'ne' ? 'ne-NP' : 'en-IN', options)
+
+export const formatPrice = (n, options) =>
+  `${i18n.language === 'ne' ? 'रु' : 'Rs'} ${formatNumber(n, options)}`
 
 export const inputClass =
   'min-h-[48px] w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 font-body text-body-md text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
@@ -25,13 +31,14 @@ const dateFmt = { day: 'numeric', month: 'short', year: 'numeric' }
 const timeFmt = { hour: 'numeric', minute: '2-digit' }
 
 export function formatEventWhen(start, end) {
+  const locale = i18n.language === 'ne' ? 'ne-NP' : 'en-GB'
   const s = new Date(start)
-  const first = `${s.toLocaleDateString('en-GB', dateFmt)}, ${s.toLocaleTimeString('en-GB', timeFmt)}`
+  const first = `${s.toLocaleDateString(locale, dateFmt)}, ${s.toLocaleTimeString(locale, timeFmt)}`
   if (!end) return first
   const e = new Date(end)
   return s.toDateString() === e.toDateString()
-    ? `${first} – ${e.toLocaleTimeString('en-GB', timeFmt)}`
-    : `${first} → ${e.toLocaleDateString('en-GB', dateFmt)}, ${e.toLocaleTimeString('en-GB', timeFmt)}`
+    ? `${first} – ${e.toLocaleTimeString(locale, timeFmt)}`
+    : `${first} → ${e.toLocaleDateString(locale, dateFmt)}, ${e.toLocaleTimeString(locale, timeFmt)}`
 }
 
 // ISO string -> value for <input type="datetime-local">

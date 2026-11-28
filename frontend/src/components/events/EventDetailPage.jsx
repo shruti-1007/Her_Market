@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { getEvent } from '../../api/events.js'
 import { imageUrl } from '../../api/client.js'
@@ -7,6 +8,7 @@ import { EVENT_CATEGORIES, ORG_TYPES, formatEventWhen, labelOf } from '../../con
 import VerifiedBadge from './VerifiedBadge.jsx'
 
 function Lightbox({ src, onClose }) {
+  const { t } = useTranslation()
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -14,9 +16,9 @@ function Lightbox({ src, onClose }) {
   }, [onClose])
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Enlarged notice image" onClick={onClose}
+    <div role="dialog" aria-modal="true" aria-label={t('Enlarged notice image')} onClick={onClose}
          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-      <button type="button" onClick={onClose} aria-label="Close"
+      <button type="button" onClick={onClose} aria-label={t('Close')}
               className="absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black">
         <span className="material-symbols-outlined" aria-hidden="true">close</span>
       </button>
@@ -38,6 +40,7 @@ function InfoRow({ icon, title, children }) {
 }
 
 export default function EventDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const [state, setState] = useState({ id: '', event: null, error: '' })
   const [active, setActive] = useState(0)
@@ -59,9 +62,9 @@ export default function EventDetailPage() {
   return (
     <main className="min-h-screen bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <Link to="/events" className="font-label text-label-md text-primary hover:underline">← All events</Link>
+        <Link to="/events" className="font-label text-label-md text-primary hover:underline">← {t('All events')}</Link>
 
-        {loading && <p className="mt-8 font-body text-body-md text-on-surface-variant">Loading...</p>}
+        {loading && <p className="mt-8 font-body text-body-md text-on-surface-variant">{t('Loading...')}</p>}
         {!loading && state.error && (
           <p role="alert" className="mt-8 rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{state.error}</p>
         )}
@@ -69,18 +72,18 @@ export default function EventDetailPage() {
         {!loading && event && (
           <div className="mt-6 grid gap-8 lg:grid-cols-5">
             {/* Notice / poster images */}
-            <section className="lg:col-span-2" aria-label="Event poster">
+            <section className="lg:col-span-2" aria-label={t('Event poster')}>
               {images.length > 0 ? (
                 <>
-                  <button type="button" onClick={() => setZoom(true)} aria-label="Enlarge image"
+                  <button type="button" onClick={() => setZoom(true)} aria-label={t('Enlarge image')}
                           className="flex max-h-[640px] min-h-[280px] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low">
-                    <img src={imageUrl(images[active])} alt={`Notice for ${event.title}`} className="max-h-[640px] w-full object-contain" />
+                    <img src={imageUrl(images[active])} alt={t('Notice for {{title}}', { title: event.title })} className="max-h-[640px] w-full object-contain" />
                   </button>
-                  <p className="mt-2 text-center font-body text-sm text-on-surface-variant">Tap the image to enlarge</p>
+                  <p className="mt-2 text-center font-body text-sm text-on-surface-variant">{t('Tap the image to enlarge')}</p>
                   {images.length > 1 && (
                     <div className="mt-3 flex gap-2 overflow-x-auto">
                       {images.map((src, i) => (
-                        <button key={src} type="button" onClick={() => setActive(i)} aria-label={`Show image ${i + 1}`}
+                        <button key={src} type="button" onClick={() => setActive(i)} aria-label={t('Show image {{number}}', { number: i + 1 })}
                                 className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-surface-container-low ${i === active ? 'border-primary' : 'border-transparent'}`}>
                           <img src={imageUrl(src)} alt="" className="h-full w-full object-cover" />
                         </button>
@@ -99,7 +102,7 @@ export default function EventDetailPage() {
             <section className="flex flex-col gap-6 lg:col-span-3">
               <div className="flex flex-col gap-3">
                 <span className="self-start rounded-full bg-secondary-container px-3 py-1 font-label text-label-md text-on-secondary-container">
-                  {labelOf(EVENT_CATEGORIES, event.category)}
+                  {t(labelOf(EVENT_CATEGORIES, event.category))}
                 </span>
                 <h1 className="font-display text-headline-lg-mobile text-on-surface sm:text-display-lg">{event.title}</h1>
                 <p className="flex flex-wrap items-center gap-2 font-body text-body-lg text-on-surface-variant">
@@ -109,35 +112,35 @@ export default function EventDetailPage() {
               </div>
 
               <div className="flex flex-col gap-5 rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
-                <InfoRow icon="calendar_month" title="Date & time">{formatEventWhen(event.startDate, event.endDate)}</InfoRow>
+                <InfoRow icon="calendar_month" title={t('Date & time')}>{formatEventWhen(event.startDate, event.endDate)}</InfoRow>
                 {event.isOnline ? (
-                  <InfoRow icon="videocam" title="Online event">
+                  <InfoRow icon="videocam" title={t('Online event')}>
                     {event.onlineLink ? (
                       <a href={event.onlineLink} target="_blank" rel="noopener noreferrer" className="break-all text-primary underline">{event.onlineLink}</a>
-                    ) : 'Link will be shared by the organizer'}
+                    ) : t('Link will be shared by the organizer')}
                   </InfoRow>
                 ) : (
-                  <InfoRow icon="location_on" title="Location">{event.location}</InfoRow>
+                  <InfoRow icon="location_on" title={t('Location')}>{event.location}</InfoRow>
                 )}
               </div>
 
               {event.description && (
                 <div>
-                  <h2 className="font-headline text-title-lg text-on-surface">About this event</h2>
+                  <h2 className="font-headline text-title-lg text-on-surface">{t('About this event')}</h2>
                   <p className="mt-2 whitespace-pre-line font-body text-body-lg text-on-surface-variant">{event.description}</p>
                 </div>
               )}
 
               {(event.registrationInstructions || event.registrationUrl) && (
                 <div className="flex flex-col gap-4 rounded-lg bg-primary-container p-5 text-on-primary-container">
-                  <h2 className="font-headline text-title-lg">How to register</h2>
+                  <h2 className="font-headline text-title-lg">{t('How to register')}</h2>
                   {event.registrationInstructions && (
                     <p className="whitespace-pre-line font-body text-body-md">{event.registrationInstructions}</p>
                   )}
                   {event.registrationUrl && (
                     <a href={event.registrationUrl} target="_blank" rel="noopener noreferrer"
                        className="inline-flex min-h-[52px] items-center justify-center gap-2 self-start rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary hover:opacity-95">
-                      Register / More Information
+                      {t('Register / More Information')}
                       <span className="material-symbols-outlined" aria-hidden="true">open_in_new</span>
                     </a>
                   )}
@@ -145,21 +148,21 @@ export default function EventDetailPage() {
               )}
 
               <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
-                <h2 className="font-headline text-title-lg text-on-surface">Organizer</h2>
+                <h2 className="font-headline text-title-lg text-on-surface">{t('Organizer')}</h2>
                 <p className="mt-2 flex flex-wrap items-center gap-2 font-headline text-title-md text-primary">
                   {event.organizer?.name}
                   {org?.verificationStatus === 'verified' && <VerifiedBadge />}
                 </p>
                 <p className="font-body text-body-md text-on-surface-variant">
-                  {labelOf(ORG_TYPES, org?.type)}{event.organizer?.location && <> · {event.organizer.location}</>}
+                  {t(labelOf(ORG_TYPES, org?.type))}{event.organizer?.location && <> · {event.organizer.location}</>}
                 </p>
                 {event.organizer?.description && (
                   <p className="mt-2 font-body text-body-md text-on-surface-variant">{event.organizer.description}</p>
                 )}
                 <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-body text-body-md text-on-surface">
-                  {event.organizer?.contact && <span>Phone: {event.organizer.contact}</span>}
+                  {event.organizer?.contact && <span>{t('Phone')}: {event.organizer.contact}</span>}
                   {org?.website && (
-                    <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">Website</a>
+                    <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{t('Website')}</a>
                   )}
                 </p>
               </div>

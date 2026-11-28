@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { errorMessage } from '../api/errors.js'
 import { trackProfileView } from '../api/analytics.js'
@@ -8,6 +9,7 @@ import { formatPrice } from '../constants.js'
 import ListingImage from './ListingImage.jsx'
 
 export default function SellerProfilePage() {
+  const { t } = useTranslation()
   const { sellerId } = useParams()
   const trackedSeller = useRef(null)
   const [state, setState] = useState({ sellerId: null, error: '', seller: null, listings: [] })
@@ -37,9 +39,9 @@ export default function SellerProfilePage() {
   return (
     <main className="min-h-screen bg-surface px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-5xl">
-        <Link to="/" className="font-label text-label-md text-primary hover:underline">← Back to marketplace</Link>
+        <Link to="/" className="font-label text-label-md text-primary hover:underline">← {t('Back to marketplace')}</Link>
 
-        {loading && <p className="mt-8 font-body text-body-md text-on-surface-variant">Loading seller profile...</p>}
+        {loading && <p className="mt-8 font-body text-body-md text-on-surface-variant">{t('Loading seller profile...')}</p>}
         {error && <p role="alert" className="mt-8 rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
 
         {seller && (
@@ -53,7 +55,7 @@ export default function SellerProfilePage() {
                 </span>
               )}
               <div>
-                <p className="font-label text-label-md text-primary">Seller profile</p>
+                <p className="font-label text-label-md text-primary">{t('Seller profile')}</p>
                 <h1 className="mt-1 font-headline text-headline-lg-mobile text-on-surface">{displayName}</h1>
                 {seller.businessName && <p className="mt-1 font-body text-body-md text-on-surface-variant">{seller.name}</p>}
                 {seller.location && <p className="mt-2 font-body text-body-md text-on-surface-variant">{seller.location}</p>}
@@ -62,9 +64,9 @@ export default function SellerProfilePage() {
             </section>
 
             <section className="mt-8">
-              <h2 className="font-headline text-headline-lg-mobile text-on-surface">Available products</h2>
+              <h2 className="font-headline text-headline-lg-mobile text-on-surface">{t('Available products')}</h2>
               {listings.length === 0 ? (
-                <p className="mt-4 font-body text-body-md text-on-surface-variant">This seller has no available products right now.</p>
+                <p className="mt-4 font-body text-body-md text-on-surface-variant">{t('This seller has no available products right now.')}</p>
               ) : (
                 <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {listings.map((listing) => (
@@ -73,7 +75,7 @@ export default function SellerProfilePage() {
                       <h3 className="font-headline text-title-md text-on-surface">{listing.title}</h3>
                       <p className="font-headline text-title-md text-primary">{formatPrice(listing.price)}</p>
                       <Link to={`/listings/${listing._id}`} className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-4 font-label text-label-md text-on-primary">
-                        View product
+                        {t('View product')}
                       </Link>
                     </li>
                   ))}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
 import SellerListings from './dashboard/SellerListings.jsx'
@@ -10,6 +11,7 @@ import OrgDashboard from './org/OrgDashboard.jsx'
 import AdminDashboard from './admin/AdminDashboard.jsx'
 
 function DashboardPage() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const isSeller = user.role === 'seller'
@@ -26,16 +28,16 @@ function DashboardPage() {
 
   const sectionDetails = {
     listings: {
-      title: 'Your products',
-      description: 'Manage your listings, prices and availability.',
+      title: t('Your products'),
+      description: t('Manage your listings, prices and availability.'),
     },
     inquiries: {
-      title: 'Customer inquiries',
-      description: 'Review and respond to messages about your products.',
+      title: t('Customer inquiries'),
+      description: t('Review and respond to messages about your products.'),
     },
     analytics: {
-      title: 'Business analytics',
-      description: 'Understand product interest and customer activity.',
+      title: t('Business analytics'),
+      description: t('Understand product interest and customer activity.'),
     },
   }[tab]
 
@@ -54,7 +56,7 @@ function DashboardPage() {
             onClick={handleLogout}
             className="min-h-[44px] rounded-lg border border-outline-variant px-4 font-label text-label-md text-primary transition-colors hover:bg-primary-container"
           >
-            Sign out
+            {t('Sign out')}
           </button>
         </div>
       </header>
@@ -63,19 +65,19 @@ function DashboardPage() {
         <section className="flex flex-col gap-5 rounded-2xl bg-primary px-6 py-7 text-on-primary shadow-md sm:flex-row sm:items-end sm:justify-between sm:px-9 sm:py-8">
           <div>
             <p className="font-label text-label-md uppercase tracking-wide text-primary-container">
-              {isSeller ? 'Seller workspace' : `${user.role} account`}
+              {isSeller ? t('Seller workspace') : t('{{role}} account', { role: user.role })}
             </p>
             <h1 className="mt-2 font-display text-headline-lg-mobile sm:text-display-lg">
-              Welcome, {user.name}
+              {t('Welcome, {{name}}', { name: user.name })}
             </h1>
             <p className="mt-2 font-body text-body-md text-primary-container">
-              {isSeller ? 'Manage your shop, products and customer activity.' : user.email}
+              {isSeller ? t('Manage your shop, products and customer activity.') : user.email}
             </p>
           </div>
           {isSeller && (
             <span className="inline-flex min-h-9 items-center gap-2 self-start rounded-full border border-white/20 bg-white/10 px-4 font-label text-label-md text-on-primary sm:self-auto">
               <span className="material-symbols-outlined text-title-md" aria-hidden="true">storefront</span>
-              Seller account
+              {t('Seller account')}
             </span>
           )}
         </section>
@@ -104,7 +106,7 @@ function DashboardPage() {
         ) : (
           <div className="mt-8">
             <h2 className="mb-4 font-headline text-headline-lg-mobile text-on-surface">
-              My inquiries
+              {t('My inquiries')}
             </h2>
             <CustomerInquiries />
           </div>

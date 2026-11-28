@@ -6,6 +6,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { useAuth } from './context/useAuth.js'
 import AuthPage from './components/AuthPage.jsx'
@@ -21,14 +22,15 @@ import EventDetailPage from './components/events/EventDetailPage.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 
 function PageStatus({ title, message, action }) {
+  const { t } = useTranslation()
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface px-6 py-12">
       <section className="w-full max-w-lg rounded-xl border border-outline-variant bg-surface-container-lowest p-8 text-center shadow-lg">
         <h1 className="font-headline text-headline-lg-mobile text-on-surface lg:text-headline-lg">
-          {title}
+          {t(title)}
         </h1>
         <p className="mt-3 font-body text-body-md text-on-surface-variant">
-          {message}
+          {t(message)}
         </p>
         {action}
       </section>
@@ -102,6 +104,7 @@ function ScrollToTop() {
 
 function AppRoutes() {
   const { pathname } = useLocation()
+  useTranslation()
   const dashboardLayout = pathname === '/dashboard'
   const routeBottomPadding =
     dashboardLayout || ['/', '/shop', '/cart'].includes(pathname)

@@ -1,28 +1,30 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { formatPrice } from '../constants.js'
 import { useCart } from '../context/useCart.js'
 import ListingImage from './ListingImage.jsx'
 
 export default function CartPage() {
+  const { t } = useTranslation()
   const { items, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart()
 
   return (
     <main className="min-h-screen bg-surface-container-low px-4 pb-28 pt-12 sm:px-6 lg:pb-16 lg:pt-16">
         <div className="mx-auto flex max-w-5xl flex-col gap-8">
           <h1 className="font-headline text-headline-lg-mobile text-on-surface lg:text-headline-lg">
-            Your cart
+            {t('Your cart')}
           </h1>
 
           {items.length === 0 ? (
             <section className="flex flex-col items-start gap-5 rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
               <p className="font-body text-body-lg text-on-surface-variant">
-                Your cart is empty
+                {t('Your cart is empty')}
               </p>
               <Link
                 to="/shop"
                 className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary"
               >
-                Continue shopping
+                {t('Continue shopping')}
               </Link>
             </section>
           ) : (
@@ -42,13 +44,13 @@ export default function CartPage() {
                     <div className="flex min-w-0 flex-col gap-1">
                       <h2 className="font-headline text-title-md text-on-surface">{item.name}</h2>
                       <p className="font-body text-body-md text-on-surface-variant">
-                        By {item.seller || 'HerMarket seller'}
+                        {t('By {{name}}', { name: item.seller || t('HerMarket seller') })}
                       </p>
-                      <p className="font-label text-label-md text-primary">{formatPrice(item.price)} each</p>
+                      <p className="font-label text-label-md text-primary">{t('{{price}} each', { price: formatPrice(item.price) })}</p>
                       <div className="mt-2 flex items-center gap-3">
                         <button
                           type="button"
-                          aria-label={`Decrease ${item.name} quantity`}
+                          aria-label={t('Decrease {{name}} quantity', { name: item.name })}
                           disabled={item.quantity <= 1}
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-50"
@@ -60,7 +62,7 @@ export default function CartPage() {
                         </span>
                         <button
                           type="button"
-                          aria-label={`Increase ${item.name} quantity`}
+                          aria-label={t('Increase {{name}} quantity', { name: item.name })}
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant text-on-surface transition-colors hover:bg-surface-container-low"
                         >
@@ -71,7 +73,7 @@ export default function CartPage() {
                           onClick={() => removeFromCart(item.id)}
                           className="ml-2 min-h-10 rounded-lg px-3 font-label text-label-md text-error transition-colors hover:bg-red-50"
                         >
-                          Remove
+                          {t('Remove')}
                         </button>
                       </div>
                     </div>
@@ -84,7 +86,7 @@ export default function CartPage() {
 
               <section className="flex flex-col gap-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:ml-auto sm:w-full sm:max-w-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="font-label text-label-lg text-on-surface">Total</span>
+                  <span className="font-label text-label-lg text-on-surface">{t('Total')}</span>
                   <span className="font-headline text-title-lg tabular-nums text-primary">
                     {formatPrice(cartTotal)}
                   </span>
@@ -95,13 +97,13 @@ export default function CartPage() {
                     onClick={clearCart}
                     className="min-h-[48px] flex-1 rounded-lg border border-outline-variant px-4 font-label text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
                   >
-                    Clear cart
+                    {t('Clear cart')}
                   </button>
                   <button
                     type="button"
                     className="min-h-[48px] flex-1 rounded-lg bg-primary px-4 font-label text-label-md text-on-primary transition-colors hover:opacity-95"
                   >
-                    Checkout
+                    {t('Checkout')}
                   </button>
                 </div>
               </section>

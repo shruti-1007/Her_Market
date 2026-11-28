@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getMyListings, updateListing, deleteListing } from '../../api/listings.js'
 import { errorMessage } from '../../api/errors.js'
-import { formatPrice } from '../../constants.js'
+import { CATEGORIES, formatPrice, labelOf } from '../../constants.js'
 import ListingImage from '../ListingImage.jsx'
 import StatusBadge from './StatusBadge.jsx'
 import ListingForm from './ListingForm.jsx'
@@ -10,6 +11,7 @@ const smallBtn =
   'min-h-10 rounded-lg border border-outline-variant px-3 font-label text-label-md text-primary transition-colors hover:bg-primary-container'
 
 export default function SellerListings() {
+  const { t } = useTranslation()
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -43,7 +45,7 @@ export default function SellerListings() {
   }
 
   async function remove(listing) {
-    if (!window.confirm(`Delete "${listing.title}"? This cannot be undone.`)) return
+    if (!window.confirm(t('Delete "{{title}}"? This cannot be undone.', { title: listing.title }))) return
     setError('')
     try {
       await deleteListing(listing._id)
@@ -56,14 +58,14 @@ export default function SellerListings() {
   return (
     <section className="flex flex-col gap-5">
       {error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
-      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading your listings...</p>}
+      {loading && <p className="font-body text-body-md text-on-surface-variant">{t('Loading your listings...')}</p>}
 
       <div className="flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface-container-low px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div>
           <p className="font-label text-label-md text-on-surface">
-            {listings.length} {listings.length === 1 ? 'product' : 'products'}
+            {listings.length} {listings.length === 1 ? t('product') : t('products')}
           </p>
-          <p className="mt-1 font-body text-sm text-on-surface-variant">Your published and unpublished listings</p>
+          <p className="mt-1 font-body text-sm text-on-surface-variant">{t('Your published and unpublished listings')}</p>
         </div>
         {!editing && (
           <button
@@ -72,7 +74,7 @@ export default function SellerListings() {
             className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-lg bg-cta px-5 font-label text-label-md text-on-cta shadow-sm transition-colors hover:opacity-90 sm:self-auto"
           >
             <span className="material-symbols-outlined text-title-md" aria-hidden="true">add</span>
-            Add product
+            {t('Add product')}
           </button>
         )}
       </div>
@@ -88,9 +90,9 @@ export default function SellerListings() {
       {!loading && listings.length === 0 && (
         <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest px-6 py-12 text-center">
           <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">inventory_2</span>
-          <h3 className="mt-3 font-headline text-title-lg text-on-surface">Your shop is ready for its first product</h3>
+          <h3 className="mt-3 font-headline text-title-lg text-on-surface">{t('Your shop is ready for its first product')}</h3>
           <p className="mx-auto mt-2 max-w-md font-body text-body-md text-on-surface-variant">
-            Add a listing to start showing your work to customers.
+            {t('Add a listing to start showing your work to customers.')}
           </p>
         </div>
       )}
@@ -108,23 +110,23 @@ export default function SellerListings() {
                 <StatusBadge value={l.availability} />
               </div>
               <p className="font-body text-body-md capitalize text-on-surface-variant">
-                {l.category} · {l.location || 'No location'}
+                {t(labelOf(CATEGORIES, l.category), { context: l.category })} · {l.location || t('No location')}
               </p>
               <p className="font-headline text-title-md text-primary">
                 {formatPrice(l.price)}
                 {l.packSize && (
                   <span className="ml-2 font-body text-body-md text-on-surface-variant">
-                    per {l.packSize}
+                    {t('per {{packSize}}', { packSize: l.packSize })}
                   </span>
                 )}
               </p>
             </div>
             <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1 xl:justify-end">
-              <button type="button" className={smallBtn} onClick={() => setEditing(l)}>Edit</button>
+              <button type="button" className={smallBtn} onClick={() => setEditing(l)}>{t('Edit')}</button>
               <button type="button" className={smallBtn} onClick={() => toggleAvailability(l)}>
-                {l.availability === 'available' ? 'Mark unavailable' : 'Mark available'}
+                {l.availability === 'available' ? t('Mark unavailable') : t('Mark available')}
               </button>
-              <button type="button" className={`${smallBtn} border-red-200 text-error hover:bg-red-50`} onClick={() => remove(l)}>Delete</button>
+              <button type="button" className={`${smallBtn} border-red-200 text-error hover:bg-red-50`} onClick={() => remove(l)}>{t('Delete')}</button>
             </div>
           </li>
         ))}

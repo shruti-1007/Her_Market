@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { formatPrice } from '../constants.js'
 import ListingImage from './ListingImage.jsx'
 
@@ -11,6 +12,7 @@ function Icon({ children }) {
 }
 
 export function ProductCard({ listing }) {
+  const { t } = useTranslation()
   return (
     <article className="flex h-full flex-col justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
       <div className="flex flex-col gap-3">
@@ -22,7 +24,7 @@ export function ProductCard({ listing }) {
           </span>
         </div>
         <p className="font-body text-body-md text-on-surface-variant">
-          By {listing.seller?.name} · {listing.location || listing.seller?.location}
+          {t('By {{name}}', { name: listing.seller?.name })} · {listing.location || listing.seller?.location}
         </p>
       </div>
       <Link
@@ -30,7 +32,7 @@ export function ProductCard({ listing }) {
         className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
       >
         <Icon>visibility</Icon>
-        View Product
+        {t('View Product')}
       </Link>
     </article>
   )

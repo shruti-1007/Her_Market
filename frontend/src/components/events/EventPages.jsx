@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getEvents } from '../../api/events.js'
 import { errorMessage } from '../../api/errors.js'
 import { EVENT_CATEGORIES, inputClass } from '../../constants.js'
@@ -7,6 +8,7 @@ import EventCard from './EventCard.jsx'
 const emptyFilters = { search: '', category: '', location: '', date: '' }
 
 export default function EventsPage() {
+  const { t } = useTranslation()
   const [filters, setFilters] = useState(emptyFilters)
   const [applied, setApplied] = useState(emptyFilters)
   const [page, setPage] = useState(1)
@@ -43,29 +45,29 @@ export default function EventsPage() {
   return (
     <main className="min-h-screen bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <p className="font-label text-label-md text-primary">COMMUNITY</p>
+        <p className="font-label text-label-md text-primary">{t('COMMUNITY')}</p>
         <h1 className="mt-1 font-display text-headline-lg-mobile text-on-surface sm:text-display-lg">
-          Events & Opportunities
+          {t('Events & Opportunities')}
         </h1>
         <p className="mt-2 max-w-2xl font-body text-body-lg text-on-surface-variant">
-          Workshops, trainings and programs from ward offices, municipalities and NGOs near you.
+          {t('Workshops, trainings and programs from ward offices, municipalities and NGOs near you.')}
         </p>
 
         <form
           onSubmit={(e) => e.preventDefault()}
           className="mt-6 grid gap-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <input type="search" value={filters.search} onChange={set('search')} placeholder="Search events..." aria-label="Search events" className={inputClass} />
-          <select value={filters.category} onChange={set('category')} aria-label="Category" className={inputClass}>
-            <option value="">All categories</option>
-            {EVENT_CATEGORIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          <input type="search" value={filters.search} onChange={set('search')} placeholder={t('Search events...')} aria-label={t('Search events')} className={inputClass} />
+          <select value={filters.category} onChange={set('category')} aria-label={t('Category')} className={inputClass}>
+            <option value="">{t('All categories')}</option>
+            {EVENT_CATEGORIES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}
           </select>
-          <input type="search" value={filters.location} onChange={set('location')} placeholder="Location (e.g. Patan)" aria-label="Location" className={inputClass} />
-          <input type="date" value={filters.date} onChange={set('date')} aria-label="Date" className={inputClass} />
+          <input type="search" value={filters.location} onChange={set('location')} placeholder={t('Location (e.g. Patan)')} aria-label={t('Location')} className={inputClass} />
+          <input type="date" value={filters.date} onChange={set('date')} aria-label={t('Date')} className={inputClass} />
         </form>
 
         <div className="mt-8">
-          {loading && <p className="font-body text-body-md text-on-surface-variant">Loading events...</p>}
+          {loading && <p className="font-body text-body-md text-on-surface-variant">{t('Loading events...')}</p>}
           {!loading && result.error && (
             <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{result.error}</p>
           )}
@@ -73,13 +75,13 @@ export default function EventsPage() {
           {!loading && !result.error && result.events.length === 0 && (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest px-6 py-14 text-center">
               <span className="material-symbols-outlined text-headline-lg text-on-surface-variant" aria-hidden="true">event_busy</span>
-              <h2 className="font-headline text-title-lg text-on-surface">No events found</h2>
+              <h2 className="font-headline text-title-lg text-on-surface">{t('No events found')}</h2>
               <p className="max-w-md font-body text-body-md text-on-surface-variant">
-                {hasFilters ? 'Nothing matches your search. Try different keywords or clear the filters.' : 'No upcoming events have been published yet. Please check back soon.'}
+                {t(hasFilters ? 'Nothing matches your search. Try different keywords or clear the filters.' : 'No upcoming events have been published yet. Please check back soon.')}
               </p>
               {hasFilters && (
                 <button type="button" onClick={() => setFilters(emptyFilters)} className="min-h-[44px] rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary hover:bg-primary-container">
-                  Clear filters
+                {t('Clear filters')}
                 </button>
               )}
             </div>
@@ -88,16 +90,16 @@ export default function EventsPage() {
           {!loading && result.events.length > 0 && (
             <>
               <p className="mb-4 font-body text-body-md text-on-surface-variant">
-                {result.total} event{result.total === 1 ? '' : 's'}
+                {t(result.total === 1 ? '{{count}} event' : '{{count}} events', { count: result.total })}
               </p>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {result.events.map((ev) => <EventCard key={ev._id} event={ev} />)}
               </div>
               {result.pages > 1 && (
                 <div className="mt-8 flex items-center justify-center gap-4">
-                  <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="min-h-[44px] rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary disabled:opacity-40">Previous</button>
-                  <span className="font-body text-body-md text-on-surface-variant">Page {page} of {result.pages}</span>
-                  <button type="button" disabled={page >= result.pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary disabled:opacity-40">Next</button>
+                  <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="min-h-[44px] rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary disabled:opacity-40">{t('Previous')}</button>
+                  <span className="font-body text-body-md text-on-surface-variant">{t('Page {{page}} of {{pages}}', { page, pages: result.pages })}</span>
+                  <button type="button" disabled={page >= result.pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary disabled:opacity-40">{t('Next')}</button>
                 </div>
               )}
             </>

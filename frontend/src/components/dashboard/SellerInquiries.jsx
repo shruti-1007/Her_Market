@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getSellerInquiries, updateInquiryStatus } from '../../api/inquiries.js'
 import { errorMessage } from '../../api/errors.js'
 import { formatPrice } from '../../constants.js'
 import StatusBadge from './StatusBadge.jsx'
 
 export default function SellerInquiries() {
+  const { t } = useTranslation()
   const [inquiries, setInquiries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -35,17 +37,17 @@ export default function SellerInquiries() {
   return (
     <section className="flex flex-col gap-4">
       {error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
-      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading inquiries...</p>}
+      {loading && <p className="font-body text-body-md text-on-surface-variant">{t('Loading inquiries...')}</p>}
       {!loading && inquiries.length === 0 && (
         <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest px-6 py-12 text-center">
           <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">forum</span>
-          <p className="mt-3 font-headline text-title-lg text-on-surface">No inquiries yet</p>
-          <p className="mt-1 font-body text-body-md text-on-surface-variant">Customer messages about your products will appear here.</p>
+          <p className="mt-3 font-headline text-title-lg text-on-surface">{t('No inquiries yet')}</p>
+          <p className="mt-1 font-body text-body-md text-on-surface-variant">{t('Customer messages about your products will appear here.')}</p>
         </div>
       )}
 
       {inquiries.map((i) => {
-        const packSize = i.packSize || i.listing?.packSize || 'item'
+        const packSize = i.packSize || i.listing?.packSize || t('item')
         const unitPrice = i.unitPriceNpr ?? i.listing?.price
         const estimatedTotal = i.estimatedTotalNpr ??
           (unitPrice === undefined ? null : unitPrice * i.quantity)
@@ -54,13 +56,13 @@ export default function SellerInquiries() {
           <article key={i._id} className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-label text-label-md uppercase tracking-wide text-primary">Product inquiry</p>
+                <p className="font-label text-label-md uppercase tracking-wide text-primary">{t('Product inquiry')}</p>
                 <h3 className="mt-1 font-headline text-title-md text-on-surface">
-                  {i.listing?.title || 'Listing removed'}
+                  {i.listing?.title || t('Listing removed')}
                 </h3>
                 {unitPrice !== undefined && (
                   <p className="mt-1 font-label text-label-md text-primary">
-                    {formatPrice(unitPrice)} per {packSize}
+                    {t('{{price}} per {{packSize}}', { price: formatPrice(unitPrice), packSize })}
                   </p>
                 )}
               </div>
@@ -70,14 +72,14 @@ export default function SellerInquiries() {
               “{i.message}”
             </blockquote>
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-body-md text-on-surface-variant">
-              <span>Requested: {i.quantity} × {packSize}</span>
+              <span>{t('Requested: {{quantity}} × {{packSize}}', { quantity: i.quantity, packSize })}</span>
               {Number.isFinite(estimatedTotal) && (
-                <span>Estimated total: {formatPrice(estimatedTotal)} (seller confirms)</span>
+                <span>{t('Estimated total: {{total}} (seller confirms)', { total: formatPrice(estimatedTotal) })}</span>
               )}
-              <span>From {i.customer?.name}</span>
+              <span>{t('From {{name}}', { name: i.customer?.name })}</span>
               {i.status === 'accepted' && i.customer && (
                 <>
-                  <span>{i.customer.contact || 'No phone provided'}</span>
+                  <span>{i.customer.contact || t('No phone provided')}</span>
                   <span className="break-all">{i.customer.email}</span>
                 </>
               )}
@@ -90,7 +92,7 @@ export default function SellerInquiries() {
                   onClick={() => decide(i._id, 'accepted')}
                   className="min-h-11 rounded-lg bg-primary px-5 font-label text-label-md text-on-primary shadow-sm transition-colors hover:opacity-90 disabled:opacity-70"
                 >
-                  Accept
+                  {t('Accept')}
                 </button>
                 <button
                   type="button"
@@ -98,7 +100,7 @@ export default function SellerInquiries() {
                   onClick={() => decide(i._id, 'rejected')}
                   className="min-h-11 rounded-lg border border-outline-variant px-5 font-label text-label-md text-error transition-colors hover:bg-red-50 disabled:opacity-70"
                 >
-                  Reject
+                  {t('Reject')}
                 </button>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { errorMessage } from '../../api/errors.js'
 import { getMySellerAnalytics } from '../../api/analytics.js'
 import { formatPrice } from '../../constants.js'
@@ -23,6 +24,7 @@ function lastThirtyDays() {
 }
 
 export default function SellerAnalytics() {
+  const { t } = useTranslation()
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -47,7 +49,7 @@ export default function SellerAnalytics() {
     return lastThirtyDays().map((date) => ({ date, ...(byDate.get(date) || { profile: 0, product: 0 }) }))
   }, [analytics])
 
-  if (loading) return <p className="font-body text-body-md text-on-surface-variant">Loading analytics...</p>
+  if (loading) return <p className="font-body text-body-md text-on-surface-variant">{t('Loading analytics...')}</p>
   if (error) return <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>
   if (!analytics) return null
 
@@ -59,20 +61,20 @@ export default function SellerAnalytics() {
   return (
     <section className="flex flex-col gap-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Metric label="Profile visits" value={analytics.profileViews} />
-        <Metric label="Unique profile visitors" value={analytics.uniqueProfileVisitors} />
-        <Metric label="Product views" value={analytics.productViews} />
-        <Metric label="Unique product visitors" value={analytics.uniqueProductVisitors} />
+        <Metric label={t('Profile visits')} value={analytics.profileViews} />
+        <Metric label={t('Unique profile visitors')} value={analytics.uniqueProfileVisitors} />
+        <Metric label={t('Product views')} value={analytics.productViews} />
+        <Metric label={t('Unique product visitors')} value={analytics.uniqueProductVisitors} />
       </div>
 
       <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
-        <h2 className="font-headline text-title-lg text-on-surface">Inquiries</h2>
+        <h2 className="font-headline text-title-lg text-on-surface">{t('Inquiries')}</h2>
         <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            ['Total', analytics.inquiries.total],
-            ['Pending', analytics.inquiries.pending],
-            ['Accepted', analytics.inquiries.accepted],
-            ['Rejected', analytics.inquiries.rejected],
+            [t('Total'), analytics.inquiries.total],
+            [t('Pending'), analytics.inquiries.pending],
+            [t('Accepted'), analytics.inquiries.accepted],
+            [t('Rejected'), analytics.inquiries.rejected],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="font-body text-body-md text-on-surface-variant">{label}</dt>
@@ -83,10 +85,10 @@ export default function SellerAnalytics() {
       </section>
 
       <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
-        <h2 className="font-headline text-title-lg text-on-surface">View trends · last 30 days</h2>
-        <div className="mt-4 flex gap-1 overflow-x-auto pb-2" role="img" aria-label="Daily profile and product views over the last 30 days">
+        <h2 className="font-headline text-title-lg text-on-surface">{t('View trends · last 30 days')}</h2>
+        <div className="mt-4 flex gap-1 overflow-x-auto pb-2" role="img" aria-label={t('Daily profile and product views over the last 30 days')}>
           {trends.map((day) => (
-            <div key={day.date} title={`${day.date}: ${day.profile} profile, ${day.product} product views`} className="flex min-w-8 flex-col items-center gap-1">
+            <div key={day.date} title={t('{{date}}: {{profile}} profile, {{product}} product views', { date: day.date, profile: day.profile, product: day.product })} className="flex min-w-8 flex-col items-center gap-1">
               <div className="flex h-24 w-full items-end gap-0.5">
                 <span className="w-1/2 rounded-t bg-primary" style={{ height: `${Math.max(2, (day.profile / maxDailyViews) * 100)}%` }} />
                 <span className="w-1/2 rounded-t bg-secondary" style={{ height: `${Math.max(2, (day.product / maxDailyViews) * 100)}%` }} />
@@ -96,21 +98,21 @@ export default function SellerAnalytics() {
           ))}
         </div>
         <div className="mt-2 flex gap-5 font-body text-sm text-on-surface-variant">
-          <span><span className="mr-2 inline-block h-3 w-3 rounded-sm bg-primary" />Profile views</span>
-          <span><span className="mr-2 inline-block h-3 w-3 rounded-sm bg-secondary" />Product views</span>
+          <span><span className="mr-2 inline-block h-3 w-3 rounded-sm bg-primary" />{t('Profile views')}</span>
+          <span><span className="mr-2 inline-block h-3 w-3 rounded-sm bg-secondary" />{t('Product views')}</span>
         </div>
       </section>
 
       <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
-        <h2 className="font-headline text-title-lg text-on-surface">Most-viewed products</h2>
+        <h2 className="font-headline text-title-lg text-on-surface">{t('Most-viewed products')}</h2>
         {analytics.mostViewedProducts.length === 0 ? (
-          <p className="mt-3 font-body text-body-md text-on-surface-variant">No product views recorded yet.</p>
+          <p className="mt-3 font-body text-body-md text-on-surface-variant">{t('No product views recorded yet.')}</p>
         ) : (
           <ol className="mt-3 flex flex-col gap-3">
             {analytics.mostViewedProducts.map((item) => (
               <li key={item.listing._id} className="flex items-center justify-between gap-4 font-body text-body-md">
                 <span className="truncate text-on-surface">{item.listing.title}</span>
-                <span className="shrink-0 text-on-surface-variant">{item.views} views</span>
+                <span className="shrink-0 text-on-surface-variant">{t('{{count}} views', { count: item.views })}</span>
               </li>
             ))}
           </ol>
@@ -118,18 +120,18 @@ export default function SellerAnalytics() {
       </section>
 
       <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm sm:p-6">
-        <h2 className="font-headline text-title-lg text-on-surface">Product performance</h2>
+        <h2 className="font-headline text-title-lg text-on-surface">{t('Product performance')}</h2>
         {analytics.productPerformance.length === 0 ? (
-          <p className="mt-3 font-body text-body-md text-on-surface-variant">You have no listings yet.</p>
+          <p className="mt-3 font-body text-body-md text-on-surface-variant">{t('You have no listings yet.')}</p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left font-body text-body-md">
               <thead>
                 <tr className="border-b border-outline-variant text-on-surface-variant">
-                  <th className="pb-3 pr-4 font-label">Product</th>
-                  <th className="pb-3 pr-4 font-label">Price</th>
-                  <th className="pb-3 pr-4 font-label">Views</th>
-                  <th className="pb-3 font-label">Unique visitors</th>
+                  <th className="pb-3 pr-4 font-label">{t('Product')}</th>
+                  <th className="pb-3 pr-4 font-label">{t('Price')}</th>
+                  <th className="pb-3 pr-4 font-label">{t('Views')}</th>
+                  <th className="pb-3 font-label">{t('Unique visitors')}</th>
                 </tr>
               </thead>
               <tbody>

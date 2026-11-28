@@ -82,7 +82,15 @@ exports.getListings = async (req, res) => {
     if (type) q.type = type;
     if (category) q.category = category;
     if (location) q.location = new RegExp(escapeRegex(location), "i");
-    if (search) q.title = new RegExp(escapeRegex(search), "i");
+    if (search) {
+      const searchRegex = new RegExp(escapeRegex(search), "i");
+      q.$or = [
+        { title: searchRegex },
+        { category: searchRegex },
+        { description: searchRegex },
+        { location: searchRegex },
+      ];
+    }
     if (minPrice || maxPrice) {
       q.price = {};
       if (minPrice) q.price.$gte = Number(minPrice);

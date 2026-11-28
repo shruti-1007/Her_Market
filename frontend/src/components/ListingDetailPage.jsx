@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/useAuth.js'
 import { useCart } from '../context/useCart.js'
 import { trackProductView } from '../api/analytics.js'
@@ -10,6 +11,7 @@ import { formatPrice, inputClass } from '../constants.js'
 import ListingImage from './ListingImage.jsx'
 
 export default function ListingDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const location = useLocation()
   const { user, status } = useAuth()
@@ -64,7 +66,7 @@ export default function ListingDetailPage() {
     setFeedback(null)
 
     if (!validCount) {
-      setFeedback({ type: 'error', message: 'Please enter a whole number of 1 or more.' })
+      setFeedback({ type: 'error', message: t('Please enter a whole number of 1 or more.') })
       return
     }
 
@@ -79,10 +81,10 @@ export default function ListingDetailPage() {
       setQuantity('1')
       setFeedback({
         type: 'success',
-        message: 'Your inquiry was sent successfully. The seller will respond soon.',
+        message: t('Your inquiry was sent successfully. The seller will respond soon.'),
       })
     } catch (e) {
-      setFeedback({ type: 'error', message: errorMessage(e) })
+      setFeedback({ type: 'error', message: t(errorMessage(e)) })
     } finally {
       setSending(false)
     }
@@ -92,11 +94,11 @@ export default function ListingDetailPage() {
     <main className="min-h-screen bg-surface px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <Link to="/" className="font-label text-label-md text-primary hover:underline">
-          ← Back to marketplace
+          ← {t('Back to marketplace')}
         </Link>
 
         {loading && (
-          <p className="mt-8 font-body text-body-md text-on-surface-variant">Loading...</p>
+          <p className="mt-8 font-body text-body-md text-on-surface-variant">{t('Loading...')}</p>
         )}
         {error && (
           <p
@@ -126,7 +128,7 @@ export default function ListingDetailPage() {
               <p className="font-headline text-headline-md text-primary">
                 {formatPrice(listing.price)}
                 <span className="ml-2 font-body text-body-md text-on-surface-variant">
-                  per {listing.packSize || 'item'}
+                  {t(listing.packSize ? 'per {{packSize}}' : 'per item', { packSize: listing.packSize })}
                 </span>
               </p>
               {listing.description && (
@@ -135,7 +137,7 @@ export default function ListingDetailPage() {
                 </p>
               )}
               <p className="font-body text-body-md text-on-surface-variant">
-                Sold by{' '}
+                {t('Sold by')}{' '}
                 {listing.seller?._id ? (
                   <Link
                     to={`/sellers/${listing.seller._id}`}
@@ -160,11 +162,11 @@ export default function ListingDetailPage() {
                 <span className="material-symbols-outlined" aria-hidden="true">
                   add_shopping_cart
                 </span>
-                Add to cart
+                {t('Add to cart')}
               </button>
               {cartFeedbackVersion > 0 && (
                 <p role="status" className="font-body text-body-md text-on-surface-variant">
-                  Added to cart ✓
+                  {t('Added to cart ✓')}
                 </p>
               )}
 
@@ -173,7 +175,7 @@ export default function ListingDetailPage() {
                   onSubmit={handleSubmit}
                   className="mt-2 flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-5"
                 >
-                  <h2 className="font-headline text-title-lg text-on-surface">Ask the seller</h2>
+                  <h2 className="font-headline text-title-lg text-on-surface">{t('Ask the seller')}</h2>
                   <textarea
                     name="message"
                     required
@@ -182,18 +184,18 @@ export default function ListingDetailPage() {
                     rows={3}
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    placeholder="Is this still available?"
+                    placeholder={t('Is this still available?')}
                     className={inputClass}
                   />
                   <label className="flex flex-col gap-2">
                     <span className="font-label text-label-md text-on-surface">
                       {listing.packSize
-                        ? 'How many packs would you like?'
-                        : 'How many items would you like?'}
+                        ? t('How many packs would you like?')
+                        : t('How many items would you like?')}
                     </span>
                     {listing.packSize && (
                       <span className="font-body text-sm text-on-surface-variant">
-                        Each pack: {listing.packSize}
+                        {t('Each pack: {{packSize}}', { packSize: listing.packSize })}
                       </span>
                     )}
                     <input
@@ -217,16 +219,17 @@ export default function ListingDetailPage() {
                     {showEstimatedTotal ? (
                       <>
                         <p className="font-label text-label-md">
-                          Estimated total: {formatPrice(estimatedTotal)}
+                          {t('Estimated total: {{price}}', { price: formatPrice(estimatedTotal) })}
                         </p>
                         <p className="mt-1 font-body text-sm">
-                          The seller will confirm the amount. No payment is taken here.
+                          {t('The seller will confirm the amount. No payment is taken here.')}
                         </p>
                       </>
                     ) : (
                       <p className="font-body text-sm">
-                        Enter a whole number of {listing.packSize ? 'packs' : 'items'} to see
-                        the estimated total.
+                        {t('Enter a whole number of {{unit}} to see the estimated total.', {
+                          unit: t(listing.packSize ? 'packs' : 'items'),
+                        })}
                       </p>
                     )}
                   </div>
@@ -240,7 +243,7 @@ export default function ListingDetailPage() {
                           : 'bg-tertiary-container text-on-tertiary-container'
                       }`}
                     >
-                      {feedback.message}
+                      {t(feedback.message)}
                     </p>
                   )}
                   <button
@@ -248,7 +251,7 @@ export default function ListingDetailPage() {
                     disabled={sending}
                     className="min-h-[48px] rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary disabled:opacity-70"
                   >
-                    {sending ? 'Sending...' : 'Send inquiry'}
+                    {sending ? t('Sending...') : t('Send inquiry')}
                   </button>
                 </form>
               )}
@@ -259,7 +262,7 @@ export default function ListingDetailPage() {
                   state={{ from: location }}
                   className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-primary px-6 font-label text-label-lg text-on-primary"
                 >
-                  Log in to contact the seller
+                  {t('Log in to contact the seller')}
                 </Link>
               )}
             </div>

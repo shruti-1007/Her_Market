@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { getCustomerInquiries } from '../../api/inquiries.js'
 import { errorMessage } from '../../api/errors.js'
@@ -6,6 +7,7 @@ import { formatPrice } from '../../constants.js'
 import StatusBadge from './StatusBadge.jsx'
 
 export default function CustomerInquiries() {
+  const { t } = useTranslation()
   const [inquiries, setInquiries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -22,16 +24,16 @@ export default function CustomerInquiries() {
   return (
     <section className="flex flex-col gap-4">
       {error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
-      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading...</p>}
+      {loading && <p className="font-body text-body-md text-on-surface-variant">{t('Loading...')}</p>}
       {!loading && inquiries.length === 0 && (
         <p className="font-body text-body-md text-on-surface-variant">
-          You haven't sent any inquiries yet.{' '}
-          <Link to="/" className="text-primary underline">Browse the marketplace</Link>
+          {t("You haven't sent any inquiries yet.")}{' '}
+          <Link to="/" className="text-primary underline">{t('Browse the marketplace')}</Link>
         </p>
       )}
 
       {inquiries.map((i) => {
-        const packSize = i.packSize || i.listing?.packSize || 'item'
+        const packSize = i.packSize || i.listing?.packSize || t('item')
         const unitPrice = i.unitPriceNpr ?? i.listing?.price
         const estimatedTotal = i.estimatedTotalNpr ??
           (unitPrice === undefined ? null : unitPrice * i.quantity)
@@ -44,16 +46,16 @@ export default function CustomerInquiries() {
                   {i.listing.title}
                 </Link>
               ) : (
-                <span className="font-headline text-title-md text-on-surface">Listing removed</span>
+                <span className="font-headline text-title-md text-on-surface">{t('Listing removed')}</span>
               )}
               <StatusBadge value={i.status} />
             </div>
             <p className="font-body text-body-md text-on-surface">“{i.message}”</p>
             <p className="font-body text-body-md text-on-surface-variant">
-              Requested: {i.quantity} × {packSize}
-              {Number.isFinite(estimatedTotal) && <> · Estimated total: {formatPrice(estimatedTotal)} (seller confirms)</>}
-              {' · '}Seller: {i.seller?.name}
-              {i.status === 'accepted' && i.seller?.contact && <> · Call {i.seller.contact}</>}
+              {t('Requested: {{quantity}} × {{packSize}}', { quantity: i.quantity, packSize })}
+              {Number.isFinite(estimatedTotal) && <> · {t('Estimated total: {{total}} (seller confirms)', { total: formatPrice(estimatedTotal) })}</>}
+              {' · '}{t('Seller: {{name}}', { name: i.seller?.name })}
+              {i.status === 'accepted' && i.seller?.contact && <> · {t('Call {{contact}}', { contact: i.seller.contact })}</>}
             </p>
           </article>
         )

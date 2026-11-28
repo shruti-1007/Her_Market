@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { getMyOrganization } from '../../api/organization.js'
 import { deleteEvent, getMyEvents } from '../../api/events.js'
@@ -12,6 +13,7 @@ import EventForm from './EventForm.jsx'
 const smallBtn = 'min-h-[40px] rounded-lg border border-outline-variant px-3 font-label text-label-md text-primary hover:bg-primary-container'
 
 export default function OrgDashboard() {
+  const { t } = useTranslation()
   const [org, setOrg] = useState(null)
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,7 @@ export default function OrgDashboard() {
     setEvents((cur) => (cur.some((e) => e._id === saved._id) ? cur.map((e) => (e._id === saved._id ? saved : e)) : [saved, ...cur]))
 
   async function remove(ev) {
-    if (!window.confirm(`Delete "${ev.title}"? This cannot be undone.`)) return
+    if (!window.confirm(t('Delete "{{title}}"? This cannot be undone.', { title: ev.title }))) return
     setError('')
     try {
       await deleteEvent(ev._id)
@@ -46,48 +48,48 @@ export default function OrgDashboard() {
 
   return (
     <DashboardShell label="Organization account">
-      {loading && <p className="font-body text-body-md text-on-surface-variant">Loading...</p>}
+      {loading && <p className="font-body text-body-md text-on-surface-variant">{t('Loading...')}</p>}
       {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">{error}</p>}
 
       {org && (
         <>
           <article className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-headline text-title-lg text-on-surface">Organization details</h2>
+              <h2 className="font-headline text-title-lg text-on-surface">{t('Organization details')}</h2>
               <StatusBadge value={status} />
             </div>
             <dl className="mt-4 grid gap-4 font-body text-body-md sm:grid-cols-2">
-              <div><dt className="text-on-surface-variant">Name</dt><dd className="font-label text-on-surface">{org.user.name}</dd></div>
-              <div><dt className="text-on-surface-variant">Type</dt><dd className="font-label text-on-surface">{labelOf(ORG_TYPES, org.type)}</dd></div>
-              <div><dt className="text-on-surface-variant">Location</dt><dd className="font-label text-on-surface">{org.user.location}</dd></div>
-              <div><dt className="text-on-surface-variant">Contact</dt><dd className="font-label text-on-surface">{org.user.contact}</dd></div>
-              {org.website && <div><dt className="text-on-surface-variant">Website</dt><dd className="font-label text-on-surface break-all">{org.website}</dd></div>}
-              <div className="sm:col-span-2"><dt className="text-on-surface-variant">About</dt><dd className="font-label text-on-surface">{org.user.description}</dd></div>
+              <div><dt className="text-on-surface-variant">{t('Name')}</dt><dd className="font-label text-on-surface">{org.user.name}</dd></div>
+              <div><dt className="text-on-surface-variant">{t('Type')}</dt><dd className="font-label text-on-surface">{t(labelOf(ORG_TYPES, org.type))}</dd></div>
+              <div><dt className="text-on-surface-variant">{t('Location')}</dt><dd className="font-label text-on-surface">{org.user.location}</dd></div>
+              <div><dt className="text-on-surface-variant">{t('Contact')}</dt><dd className="font-label text-on-surface">{org.user.contact}</dd></div>
+              {org.website && <div><dt className="text-on-surface-variant">{t('Website')}</dt><dd className="font-label text-on-surface break-all">{org.website}</dd></div>}
+              <div className="sm:col-span-2"><dt className="text-on-surface-variant">{t('About')}</dt><dd className="font-label text-on-surface">{org.user.description}</dd></div>
             </dl>
 
             {status === 'pending' && (
               <p className="mt-5 rounded-lg bg-amber-50 px-4 py-3 font-body text-body-md text-amber-900">
-                Your organization is waiting for review. You can publish events once an admin verifies it.
+                {t('Your organization is waiting for review. You can publish events once an admin verifies it.')}
               </p>
             )}
             {status === 'rejected' && (
               <p className="mt-5 rounded-lg bg-red-50 px-4 py-3 font-body text-body-md text-error">
-                Your verification was rejected{org.rejectionReason && <>: {org.rejectionReason}</>}. Please contact the HerMarket team.
+                {t('Your verification was rejected')}{org.rejectionReason && <>: {org.rejectionReason}</>}. {t('Please contact the HerMarket team.')}
               </p>
             )}
           </article>
 
           <section className="mt-8 flex flex-col gap-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-headline text-headline-lg-mobile text-on-surface">Your events</h2>
+              <h2 className="font-headline text-headline-lg-mobile text-on-surface">{t('Your events')}</h2>
               {!editing && (
                 <button type="button" disabled={!verified} onClick={() => setEditing('new')}
                         className="min-h-[48px] rounded-lg bg-cta px-6 font-label text-label-lg text-on-cta disabled:cursor-not-allowed disabled:opacity-50">
-                  + New event
+                  {t('+ New event')}
                 </button>
               )}
             </div>
-            {!verified && <p className="font-body text-body-md text-on-surface-variant">Only verified organizations can publish events.</p>}
+            {!verified && <p className="font-body text-body-md text-on-surface-variant">{t('Only verified organizations can publish events.')}</p>}
 
             {editing && (
               <EventForm event={editing === 'new' ? null : editing} onCancel={() => setEditing(null)}
@@ -95,7 +97,7 @@ export default function OrgDashboard() {
             )}
 
             {events.length === 0 && !editing && (
-              <p className="font-body text-body-md text-on-surface-variant">You haven't published any events yet.</p>
+              <p className="font-body text-body-md text-on-surface-variant">{t("You haven't published any events yet.")}</p>
             )}
 
             <ul className="flex flex-col gap-4">
@@ -109,14 +111,14 @@ export default function OrgDashboard() {
                   <div className="flex flex-1 flex-col gap-1">
                     <h3 className="font-headline text-title-md text-on-surface">{ev.title}</h3>
                     <p className="font-body text-body-md text-on-surface-variant">
-                      {labelOf(EVENT_CATEGORIES, ev.category)} · {formatEventWhen(ev.startDate, ev.endDate)}
+                      {t(labelOf(EVENT_CATEGORIES, ev.category))} · {formatEventWhen(ev.startDate, ev.endDate)}
                     </p>
-                    <p className="font-body text-body-md text-on-surface-variant">{ev.isOnline ? 'Online event' : ev.location}</p>
+                    <p className="font-body text-body-md text-on-surface-variant">{ev.isOnline ? t('Online event') : ev.location}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {verified && <Link to={`/events/${ev._id}`} className={smallBtn}>View</Link>}
-                    <button type="button" className={smallBtn} onClick={() => setEditing(ev)}>Edit</button>
-                    <button type="button" className={`${smallBtn} text-error`} onClick={() => remove(ev)}>Delete</button>
+                    {verified && <Link to={`/events/${ev._id}`} className={smallBtn}>{t('View')}</Link>}
+                    <button type="button" className={smallBtn} onClick={() => setEditing(ev)}>{t('Edit')}</button>
+                    <button type="button" className={`${smallBtn} text-error`} onClick={() => remove(ev)}>{t('Delete')}</button>
                   </div>
                 </li>
               ))}

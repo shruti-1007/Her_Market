@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/useAuth.js'
 
 export default function DashboardShell({ label, children }) {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -17,13 +19,13 @@ export default function DashboardShell({ label, children }) {
           </Link>
           <button type="button" onClick={() => { logout(); navigate('/login', { replace: true }) }}
                   className="min-h-[44px] rounded-lg border border-outline-variant px-4 font-label text-label-md text-primary hover:bg-primary-container">
-            Sign out
+            {t('Sign out')}
           </button>
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-6 py-10">
         <section className="rounded-xl bg-primary px-6 py-8 text-on-primary shadow-md sm:px-10">
-          <p className="font-label text-label-md uppercase text-primary-container">{label}</p>
+          <p className="font-label text-label-md uppercase text-primary-container">{t(label)}</p>
           <h1 className="mt-2 font-display text-headline-lg-mobile sm:text-display-lg">{user.name}</h1>
           <p className="mt-2 font-body text-body-md text-primary-container">{user.email}</p>
         </section>

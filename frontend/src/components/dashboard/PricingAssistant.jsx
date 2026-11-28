@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   calculatePricing,
   detectMaterials,
@@ -6,6 +7,7 @@ import {
   getPricingConfig,
 } from '../../api/pricing.js'
 import { errorMessage } from '../../api/errors.js'
+import { formatPrice } from '../../constants.js'
 
 const timeOptions = [
   ['under-hour', 'Less than 1 hour', 30],
@@ -22,17 +24,17 @@ const buttonClass =
 const fieldClass =
   'min-h-[48px] w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 font-body text-body-md text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
 
-const money = (amount) =>
-  `NPR ${Number(amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+const money = (amount) => formatPrice(Number(amount || 0), { maximumFractionDigits: 2 })
 const makeId = () => `${Date.now()}-${Math.random()}`
 
 function StepTitle({ step, title, description }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-1">
-      <p className="font-label text-label-md text-primary">Step {step} of 5</p>
+      <p className="font-label text-label-md text-primary">{t('Step {{step}} of 5', { step })}</p>
       <div
         role="progressbar"
-        aria-label={`Pricing helper progress: step ${step} of 5`}
+        aria-label={t('Pricing helper progress: step {{step}} of 5', { step })}
         aria-valuemin={1}
         aria-valuemax={5}
         aria-valuenow={step}
@@ -47,23 +49,24 @@ function StepTitle({ step, title, description }) {
 }
 
 function MaterialConfirmation({ material, onChange, onDecision, onRemove }) {
+  const { t } = useTranslation()
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-4">
       <label className="flex flex-col gap-2">
         <span className="font-label text-label-md text-on-surface">
-          {material.aiSuggested ? 'Suggested material (you can change the name)' : 'Material name'}
+          {material.aiSuggested ? t('Suggested material (you can change the name)') : t('Material name')}
         </span>
         <input
           value={material.name}
           onChange={(event) => onChange(event.target.value)}
           maxLength={100}
           className={fieldClass}
-          aria-label="Material name"
+          aria-label={t('Material name')}
         />
       </label>
       {material.reason && (
         <p className="font-body text-sm text-on-surface-variant">
-          Photo suggestion ({material.confidence} confidence): {material.reason}
+          {t('Photo suggestion ({{confidence}} confidence): {{reason}}', { confidence: material.confidence, reason: material.reason })}
         </p>
       )}
       <div className="flex flex-wrap gap-2">
@@ -73,7 +76,7 @@ function MaterialConfirmation({ material, onChange, onDecision, onRemove }) {
           onClick={() => onDecision('yes')}
           className={`${buttonClass} ${material.decision === 'yes' ? 'border-primary bg-primary-container' : ''}`}
         >
-          Yes, I used this
+          {t('Yes, I used this')}
         </button>
         <button
           type="button"
@@ -81,10 +84,10 @@ function MaterialConfirmation({ material, onChange, onDecision, onRemove }) {
           onClick={() => onDecision('no')}
           className={`${buttonClass} ${material.decision === 'no' ? 'border-primary bg-primary-container' : ''}`}
         >
-          No, I didn't
+          {t("No, I didn't")}
         </button>
         <button type="button" onClick={onRemove} className={buttonClass}>
-          Remove
+          {t('Remove')}
         </button>
       </div>
     </article>
@@ -92,6 +95,7 @@ function MaterialConfirmation({ material, onChange, onDecision, onRemove }) {
 }
 
 function MaterialCostQuestion({ material, answer, onChange }) {
+  const { t } = useTranslation()
   const [estimating, setEstimating] = useState(false)
   const [estimateError, setEstimateError] = useState('')
   const method = answer?.method || ''
@@ -122,11 +126,11 @@ function MaterialCostQuestion({ material, answer, onChange }) {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container-lowest p-4">
-      <h4 className="font-headline text-title-md text-on-surface">How much {material.name} did you use?</h4>
+      <h4 className="font-headline text-title-md text-on-surface">{t('How much {{material}} did you use?', { material: material.name })}</h4>
       {!['estimated', 'used'].includes(method) && (
         <label className="flex flex-col gap-2">
           <span className="font-label text-label-md text-on-surface">
-            How much did you pay for it all? (NPR)
+            {t('How much did you pay for it all? (NPR)')}
           </span>
           <input
             type="number"
@@ -136,12 +140,12 @@ function MaterialCostQuestion({ material, answer, onChange }) {
             value={answer?.purchaseCostNpr ?? ''}
             onChange={(event) => set('purchaseCostNpr', event.target.value)}
             className={fieldClass}
-            aria-label={`Amount paid for all ${material.name}`}
+            aria-label={t('Amount paid for all {{material}}', { material: material.name })}
           />
         </label>
       )}
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-label text-label-md text-on-surface">Choose the closest answer</legend>
+        <legend className="font-label text-label-md text-on-surface">{t('Choose the closest answer')}</legend>
         {[
           ['all', 'All of it'],
           ['half', 'About half'],
@@ -156,7 +160,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
               checked={method === value}
               onChange={() => set('method', value)}
             />
-            {label}
+            {t(label)}
           </label>
         ))}
       </fieldset>
@@ -165,7 +169,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-2">
             <span className="font-label text-label-md text-on-surface">
-              About how much did the part you used cost? (NPR)
+              {t('About how much did the part you used cost? (NPR)')}
             </span>
             <input
               type="number"
@@ -182,25 +186,25 @@ function MaterialCostQuestion({ material, answer, onChange }) {
           </label>
           <label className="flex flex-col gap-2">
             <span className="font-label text-label-md text-on-surface">
-              About how much did you use? (optional)
+              {t('About how much did you use? (optional)')}
             </span>
             <input
               value={answer?.usedQuantityDescription ?? ''}
               maxLength={100}
               onChange={(event) => set('usedQuantityDescription', event.target.value)}
-              placeholder="For example, one handful or half a metre"
+              placeholder={t('For example, one handful or half a metre')}
               className={fieldClass}
             />
           </label>
           <button type="button" disabled={estimating} onClick={askForEstimate} className={`${buttonClass} self-start disabled:opacity-60`}>
-            {estimating ? 'Estimating...' : 'Ask AI for an approximate price'}
+            {estimating ? t('Estimating...') : t('Ask AI for an approximate price')}
           </button>
           <p className="font-body text-sm text-on-surface-variant">
-            AI can only give a rough suggestion. It is not a verified current Nepal price. You can edit the amount.
+            {t('AI can only give a rough suggestion. It is not a verified current Nepal price. You can edit the amount.')}
           </p>
           {answer?.costSource === 'ai' && answer.aiEstimate && (
             <p className="rounded-lg bg-primary-container p-3 font-body text-sm text-on-primary-container">
-              AI estimate range: {money(answer.aiEstimate.lowNpr)}–{money(answer.aiEstimate.highNpr)}.
+              {t('AI estimate range: {{low}}–{{high}}.', { low: money(answer.aiEstimate.lowNpr), high: money(answer.aiEstimate.highNpr) })}
               {' '}{answer.aiEstimate.explanation}
             </p>
           )}
@@ -211,7 +215,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
       {method === 'used' && (
         <label className="flex flex-col gap-2">
           <span className="font-label text-label-md text-on-surface">
-            What did the amount used for this product cost? (NPR)
+            {t('What did the amount used for this product cost? (NPR)')}
           </span>
           <input
             type="number"
@@ -228,7 +232,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
       {method === 'exact' && (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-2">
-            <span className="font-label text-label-md text-on-surface">Total amount you bought</span>
+            <span className="font-label text-label-md text-on-surface">{t('Total amount you bought')}</span>
             <input
               type="number"
               min="0.01"
@@ -240,7 +244,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
             />
           </label>
           <label className="flex flex-col gap-2">
-            <span className="font-label text-label-md text-on-surface">Amount you used</span>
+            <span className="font-label text-label-md text-on-surface">{t('Amount you used')}</span>
             <input
               type="number"
               min="0.01"
@@ -252,7 +256,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
             />
           </label>
           <label className="flex flex-col gap-2 sm:col-span-2">
-            <span className="font-label text-label-md text-on-surface">Unit (optional, e.g. grams)</span>
+            <span className="font-label text-label-md text-on-surface">{t('Unit (optional, e.g. grams)')}</span>
             <input
               value={answer?.unit ?? ''}
               maxLength={30}
@@ -267,6 +271,7 @@ function MaterialCostQuestion({ material, answer, onChange }) {
 }
 
 export default function PricingAssistant({ image, onComplete, onCancel }) {
+  const { t } = useTranslation()
   const [phase, setPhase] = useState('detecting')
   const [attempt, setAttempt] = useState(0)
   const [error, setError] = useState('')
@@ -347,7 +352,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
     const material = confirmedMaterials[costIndex]
     const answer = costAnswers[material.id] || {}
     if (!answer.method) {
-      setError('Choose how much of this material you used.')
+      setError(t('Choose how much of this material you used.'))
       return
     }
     const required = answer.method === 'estimated'
@@ -356,14 +361,14 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
         ? answer.usedCostNpr
         : answer.purchaseCostNpr
     if (required === undefined || required === '' || !Number.isFinite(Number(required)) || Number(required) < 0) {
-      setError('Enter a cost of zero or more, or choose another way to estimate it.')
+      setError(t('Enter a cost of zero or more, or choose another way to estimate it.'))
       return
     }
     if (answer.method === 'exact') {
       const total = Number(answer.totalQuantity)
       const used = Number(answer.quantityUsed)
       if (!Number.isFinite(total) || !Number.isFinite(used) || total <= 0 || used <= 0 || used > total) {
-        setError('Enter an amount used that is more than zero and no more than the amount you bought.')
+        setError(t('Enter an amount used that is more than zero and no more than the amount you bought.'))
         return
       }
     }
@@ -387,13 +392,13 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
           minutes < 0 ||
           minutes > 59
         ) {
-          setError('Enter a time greater than zero and up to 7 days.')
+          setError(t('Enter a time greater than zero and up to 7 days.'))
           return
         }
       } else {
         const selected = timeOptions.find(([value]) => value === timeChoice)
         if (!selected) {
-          setError('Choose how long it took, or skip this step.')
+          setError(t('Choose how long it took, or skip this step.'))
           return
         }
         nextMinutes = selected[2]
@@ -401,7 +406,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
       }
       const rate = Number(hourlyRateNpr)
       if (!Number.isFinite(rate) || rate < 0 || rate > 100000) {
-        setError('Enter an hourly amount between NPR 0 and NPR 100,000.')
+        setError(t('Enter an hourly amount between NPR 0 and NPR 100,000.'))
         return
       }
       setMinutesSpent(nextMinutes)
@@ -419,11 +424,11 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
     const margin = Number(profitMarginPercent)
     const rate = Number(hourlyRateNpr)
     if (!Number.isFinite(margin) || margin < 0 || margin > 200) {
-      setError('Enter a profit amount from 0% to 200%.')
+      setError(t('Enter a profit amount from 0% to 200%.'))
       return
     }
     if (!Number.isFinite(rate) || rate < 0 || rate > 100000) {
-      setError('Enter an hourly amount between NPR 0 and NPR 100,000.')
+      setError(t('Enter an hourly amount between NPR 0 and NPR 100,000.'))
       return
     }
     let omittedExpenses = 0
@@ -434,7 +439,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
         continue
       }
       if (typeof expense !== 'object' || Array.isArray(expense)) {
-        setError(`Other cost ${index + 1} is invalid.`)
+        setError(t('Other cost {{index}} is invalid.', { index: index + 1 }))
         return
       }
       const amountMissing =
@@ -453,7 +458,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
         !Number.isFinite(Number(expense.amountNpr)) ||
         Number(expense.amountNpr) < 0
       ) {
-        setError('Add a valid name and amount for each other cost, or remove that cost.')
+        setError(t('Add a valid name and amount for each other cost, or remove that cost.'))
         return
       }
       includedExpenses.push({
@@ -465,7 +470,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
     for (const material of confirmedMaterials) {
       const answer = costAnswers[material.id]
       if (!answer?.method) {
-        setError(`Choose how much of ${material.name} you used.`)
+        setError(t('Choose how much of {{material}} you used.', { material: material.name }))
         return
       }
       materialsToPrice.push({
@@ -540,16 +545,16 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
     return (
       <section className="flex flex-col gap-3 rounded-lg border border-outline-variant bg-primary-container p-5">
         <p className="font-headline text-title-md text-on-primary-container">
-          Looking closely at your photo...
+          {t('Looking closely at your photo...')}
         </p>
         <p className="font-body text-body-md text-on-primary-container">
-          I’ll suggest materials I can see. You can correct anything I get wrong.
+          {t('I’ll suggest materials I can see. You can correct anything I get wrong.')}
         </p>
         <div className="h-2 overflow-hidden rounded-full bg-white/70">
           <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
         </div>
         <button type="button" onClick={onCancel} className="self-start rounded-lg px-4 py-2 font-label text-label-md text-primary">
-          Skip AI and set my own price
+          {t('Skip AI and set my own price')}
         </button>
       </section>
     )
@@ -568,10 +573,10 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
           }}
           className={buttonClass}
         >
-          Try AI again
+          {t('Try AI again')}
         </button>
         <button type="button" onClick={onCancel} className={buttonClass}>
-          I'll set my own price
+          {t("I'll set my own price")}
         </button>
       </section>
     )
@@ -590,29 +595,29 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
       <StepTitle
         step={progressStep}
         title={
-          phase === 'materials' ? 'Are these materials right?'
-            : phase === 'costs' ? `Material ${costIndex + 1} of ${confirmedMaterials.length}`
-              : phase === 'time' ? 'How long did it take?'
-                : phase === 'expenses' ? 'Any other costs?'
-                  : 'Here is your price estimate'
+          phase === 'materials' ? t('Are these materials right?')
+            : phase === 'costs' ? t('Material {{current}} of {{total}}', { current: costIndex + 1, total: confirmedMaterials.length })
+              : phase === 'time' ? t('How long did it take?')
+                : phase === 'expenses' ? t('Any other costs?')
+                  : t('Here is your price estimate')
         }
         description={
-          phase === 'materials' ? 'The photo can only give clues. You know best what you used.'
-            : phase === 'costs' ? 'We’ll count only the part you used for this product.'
-              : phase === 'time' ? 'Your time matters too. A middle estimate is used for time ranges.'
-                : phase === 'expenses' ? 'You can skip this if you had no other costs.'
-                  : 'This is an estimate from the details you shared, not an exact market price.'
+          phase === 'materials' ? t('The photo can only give clues. You know best what you used.')
+            : phase === 'costs' ? t('We’ll count only the part you used for this product.')
+              : phase === 'time' ? t('Your time matters too. A middle estimate is used for time ranges.')
+                : phase === 'expenses' ? t('You can skip this if you had no other costs.')
+                  : t('This is an estimate from the details you shared, not an exact market price.')
         }
       />
 
       {phase === 'materials' && (
         <div className="flex flex-col gap-3">
           <p className="font-label text-label-md text-on-surface">
-            I think these materials may have been used. Is this right?
+            {t('I think these materials may have been used. Is this right?')}
           </p>
           {materials.length === 0 && (
             <p className="rounded-lg bg-surface-container-lowest p-4 font-body text-body-md text-on-surface-variant">
-              I couldn’t clearly spot materials in the photo. You can add them yourself or continue without materials.
+              {t('I couldn’t clearly spot materials in the photo. You can add them yourself or continue without materials.')}
             </p>
           )}
           {materials.map((material) => (
@@ -633,7 +638,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               ])}
               className={`${buttonClass} self-start`}
             >
-              + Add another material
+              {t('+ Add another material')}
             </button>
           )}
         </div>
@@ -651,7 +656,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
         <div className="flex flex-col gap-4">
           <fieldset className="flex flex-col gap-2">
             <legend className="font-label text-label-md text-on-surface">
-              Choose the closest answer
+              {t('Choose the closest answer')}
             </legend>
             {timeOptions.map(([value, label]) => (
               <label key={value} className="flex min-h-11 items-center gap-3 font-body text-body-md text-on-surface">
@@ -661,25 +666,25 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
                   checked={timeChoice === value}
                   onChange={() => setTimeChoice(value)}
                 />
-                {label}
+                {t(label)}
               </label>
             ))}
           </fieldset>
           {timeChoice === 'custom' && (
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-2">
-                <span className="font-label text-label-md text-on-surface">Hours</span>
+                <span className="font-label text-label-md text-on-surface">{t('Hours')}</span>
                 <input type="number" min="0" max="168" step="1" value={customHours} onChange={(e) => setCustomHours(e.target.value)} className={fieldClass} />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="font-label text-label-md text-on-surface">Extra minutes</span>
+                <span className="font-label text-label-md text-on-surface">{t('Extra minutes')}</span>
                 <input type="number" min="0" max="59" step="1" value={customMinutes} onChange={(e) => setCustomMinutes(e.target.value)} className={fieldClass} />
               </label>
             </div>
           )}
           <label className="flex flex-col gap-2">
             <span className="font-label text-label-md text-on-surface">
-              Starting pay for your time (NPR per hour)
+              {t('Starting pay for your time (NPR per hour)')}
             </span>
             <input
               type="number"
@@ -693,7 +698,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
             />
             {config && (
               <span className="font-body text-sm text-on-surface-variant">
-                This starting amount can be changed. It is not a fixed rule.
+                {t('This starting amount can be changed. It is not a fixed rule.')}
               </span>
             )}
           </label>
@@ -703,7 +708,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
       {phase === 'expenses' && (
         <div className="flex flex-col gap-4">
           <p className="font-label text-label-md text-on-surface">
-            Did you spend money on anything else to make it?
+            {t('Did you spend money on anything else to make it?')}
           </p>
           <div className="flex flex-col gap-3">
             {expenseOptions.map((name) => (
@@ -713,14 +718,14 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
                   checked={expenses.some((expense) => expense.name === name)}
                   onChange={() => toggleExpense(name)}
                 />
-                {name}
+                {t(name)}
               </label>
             ))}
           </div>
           {expenses.map((expense, index) => (
             <div key={`${expense.name}-${index}`} className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
               <label className="grid gap-2 sm:grid-cols-2 sm:items-center">
-                <span className="font-label text-label-md text-on-surface">{expense.name} (NPR)</span>
+                <span className="font-label text-label-md text-on-surface">{t('{{name}} (NPR)', { name: expense.name })}</span>
                 <input
                   type="number"
                   min="0"
@@ -729,16 +734,16 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
                   value={expense.amountNpr}
                   onChange={(event) => updateExpense(index, { amountNpr: event.target.value })}
                   className={fieldClass}
-                  aria-label={`${expense.name} cost in NPR`}
+                  aria-label={t('{{name}} cost in NPR', { name: expense.name })}
                 />
               </label>
               <button
                 type="button"
                 onClick={() => setExpenses((current) => current.filter((_, i) => i !== index))}
                 className="min-h-11 self-start rounded-lg px-3 font-label text-label-md text-error sm:self-center"
-                aria-label={`Remove ${expense.name}`}
+                aria-label={t('Remove {{name}}', { name: expense.name })}
               >
-                Remove
+                {t('Remove')}
               </button>
             </div>
           ))}
@@ -747,7 +752,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               value={customExpenseName}
               onChange={(event) => setCustomExpenseName(event.target.value)}
               maxLength={100}
-              placeholder="Another cost (optional)"
+              placeholder={t('Another cost (optional)')}
               className={fieldClass}
             />
             <button
@@ -760,12 +765,12 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               }}
               className={`${buttonClass} disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              + Add cost
+              {t('+ Add cost')}
             </button>
           </div>
           <label className="flex flex-col gap-2">
             <span className="font-label text-label-md text-on-surface">
-              Extra amount to add on top (%)
+              {t('Extra amount to add on top (%)')}
             </span>
             <input
               type="number"
@@ -779,7 +784,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
             />
             {config && (
               <span className="font-body text-sm text-on-surface-variant">
-                Starting suggestion: {config.profitMarginPercent}%. You can change it or choose 0%.
+                {t('Starting suggestion: {{percent}}%. You can change it or choose 0%.', { percent: config.profitMarginPercent })}
               </span>
             )}
           </label>
@@ -790,22 +795,22 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 rounded-lg bg-surface-container-lowest p-4">
             <div className="flex flex-col gap-2">
-              <h4 className="font-label text-label-md text-on-surface">Material costs</h4>
+              <h4 className="font-label text-label-md text-on-surface">{t('Material costs')}</h4>
               {pricing.materials.length === 0 && (
-                <p className="font-body text-body-md text-on-surface-variant">No material costs included.</p>
+                <p className="font-body text-body-md text-on-surface-variant">{t('No material costs included.')}</p>
               )}
               {pricing.materials.map((material, index) => {
                 const source = material.costSource === 'ai'
-                  ? 'AI estimate (approx.)'
+                  ? t('AI estimate (approx.)')
                   : material.method === 'estimated'
-                    ? 'your estimate'
+                    ? t('your estimate')
                     : material.method === 'used'
-                      ? 'your cost for amount used'
+                      ? t('your cost for amount used')
                       : material.method === 'half'
-                        ? 'your price, about half used'
+                        ? t('your price, about half used')
                         : material.method === 'exact'
-                          ? `your price, ${material.quantityUsed} ${material.unit || 'units'} used`
-                          : 'your price, all used'
+                          ? t('your price, {{quantity}} {{unit}} used', { quantity: material.quantityUsed, unit: material.unit || t('units') })
+                          : t('your price, all used')
                 return (
                   <div key={`${material.name}-${index}`} className="flex justify-between gap-3 font-body text-body-md text-on-surface">
                     <span>{material.name}{material.usedQuantityDescription ? ` (${material.usedQuantityDescription})` : ''} <span className="text-sm text-on-surface-variant">({source})</span></span>
@@ -815,9 +820,9 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               })}
             </div>
             <div className="flex flex-col gap-2 border-t border-outline-variant pt-3">
-              <h4 className="font-label text-label-md text-on-surface">Other costs</h4>
+              <h4 className="font-label text-label-md text-on-surface">{t('Other costs')}</h4>
               {pricing.expenses.length === 0 && (
-                <p className="font-body text-body-md text-on-surface-variant">No additional costs included.</p>
+                <p className="font-body text-body-md text-on-surface-variant">{t('No additional costs included.')}</p>
               )}
               {pricing.expenses.map((expense, index) => (
                 <div key={`${expense.name}-${index}`} className="flex justify-between gap-3 font-body text-body-md text-on-surface">
@@ -826,62 +831,64 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               ))}
               {skippedExpensesCount > 0 && (
                 <p className="font-body text-sm text-on-surface-variant">
-                  {skippedExpensesCount} cost{skippedExpensesCount === 1 ? '' : 's'} with no amount entered were not included.
+                  {skippedExpensesCount === 1
+                    ? t('{{count}} cost with no amount entered was not included.', { count: skippedExpensesCount })
+                    : t('{{count}} costs with no amount entered were not included.', { count: skippedExpensesCount })}
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-2 border-t border-outline-variant pt-3">
-              <h4 className="font-label text-label-md text-on-surface">Your time</h4>
+              <h4 className="font-label text-label-md text-on-surface">{t('Your time')}</h4>
             {pricing.minutesSpent !== null && (
                 <div className="flex justify-between gap-3 font-body text-body-md text-on-surface">
                   <span>
-                    {pricing.minutesSpent / 60} hours × {money(pricing.hourlyRateNpr)}/hour
-                    {pricing.timeEstimated ? ' (estimated time)' : ''}
+                    {t('{{hours}} hours × {{rate}}/hour', { hours: pricing.minutesSpent / 60, rate: money(pricing.hourlyRateNpr) })}
+                    {pricing.timeEstimated ? ` (${t('estimated time')})` : ''}
                   </span>
                   <span className="shrink-0">{money(pricing.labourCostNpr)}</span>
                 </div>
             )}
             {pricing.minutesSpent === null && (
-              <p className="font-body text-body-md text-on-surface-variant">Your time was not included.</p>
+              <p className="font-body text-body-md text-on-surface-variant">{t('Your time was not included.')}</p>
             )}
             </div>
             <div className="mt-2 flex justify-between gap-3 border-t border-outline-variant pt-2 font-label text-label-md text-on-surface">
-              <span>Estimated cost to make</span><span>{money(pricing.totalCostNpr)}</span>
+              <span>{t('Estimated cost to make')}</span><span>{money(pricing.totalCostNpr)}</span>
             </div>
             <div className="flex justify-between gap-3 font-body text-body-md text-on-surface-variant">
-              <span>Suggested profit ({pricing.profitMarginPercent}%)</span>
+              <span>{t('Suggested profit ({{percent}}%)', { percent: pricing.profitMarginPercent })}</span>
               <span>{money(pricing.profitAmountNpr)}</span>
             </div>
             <div className="flex justify-between gap-3 border-t border-outline-variant pt-2 font-label text-title-md text-primary">
-              <span>Suggested selling price</span>
+              <span>{t('Suggested selling price')}</span>
               <span>{money(pricing.suggestedPriceNpr)}</span>
             </div>
           </div>
           {!pricing.complete && (
             <p className="rounded-lg bg-amber-50 p-3 font-body text-body-md text-amber-900">
-              Your time was not included, so this estimate is incomplete.
+              {t('Your time was not included, so this estimate is incomplete.')}
             </p>
           )}
           {(pricing.timeEstimated || pricing.materials.some((item) => item.method === 'estimated' || item.method === 'half')) && (
             <p className="font-body text-sm text-on-surface-variant">
-              Some amounts are estimates. Check them and change anything that does not look right.
+              {t('Some amounts are estimates. Check them and change anything that does not look right.')}
             </p>
           )}
           <p className="font-body text-body-md text-on-surface-variant">
-            You shared costs of about {money(pricing.totalCostNpr)}. At this suggested price, about {money(pricing.profitAmountNpr)} remains before other costs we did not include.
+            {t('You shared costs of about {{cost}}. At this suggested price, about {{profit}} remains before other costs we did not include.', { cost: money(pricing.totalCostNpr), profit: money(pricing.profitAmountNpr) })}
           </p>
           <p className="font-label text-label-md text-on-surface">
-            Would you like to sell your product at this price?
+            {t('Would you like to sell your product at this price?')}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button type="button" onClick={() => finish('accepted')} className="min-h-[48px] rounded-lg bg-primary px-4 font-label text-label-md text-on-primary">
-              Accept suggested price
+              {t('Accept suggested price')}
             </button>
             <button type="button" onClick={() => finish('changed')} className={buttonClass}>
-              Change the price myself
+              {t('Change the price myself')}
             </button>
             <button type="button" onClick={() => { setError(''); setPhase('materials') }} className={buttonClass}>
-              Calculate again
+              {t('Calculate again')}
             </button>
           </div>
         </div>
@@ -892,7 +899,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
       {phase !== 'result' && (
         <div className="sticky bottom-0 z-10 -mx-4 -mb-4 mt-2 flex flex-wrap gap-3 border-t border-outline-variant bg-primary-container/95 px-4 py-3 shadow-[0_-8px_12px_rgba(0,0,0,0.08)] backdrop-blur sm:-mx-5 sm:-mb-5 sm:px-5">
           <button type="button" onClick={back} className={buttonClass}>
-            {phase === 'materials' ? 'Use my own price' : 'Back'}
+            {phase === 'materials' ? t('Use my own price') : t('Back')}
           </button>
           {phase === 'materials' && (
             <button
@@ -900,7 +907,7 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               disabled={materials.some((material) => !material.decision)}
               onClick={() => {
                 if (materials.some((material) => !material.name.trim())) {
-                  setError('Please add a name for each material, or remove it.')
+                  setError(t('Please add a name for each material, or remove it.'))
                   return
                 }
                 setError('')
@@ -909,31 +916,31 @@ export default function PricingAssistant({ image, onComplete, onCancel }) {
               }}
               className="min-h-[48px] rounded-lg bg-primary px-5 font-label text-label-md text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Continue
+              {t('Continue')}
             </button>
           )}
           {phase === 'costs' && (
             <button type="button" onClick={saveMaterialCost} className="min-h-[48px] rounded-lg bg-primary px-5 font-label text-label-md text-on-primary">
-              {costIndex < confirmedMaterials.length - 1 ? 'Next material' : 'Continue'}
+              {costIndex < confirmedMaterials.length - 1 ? t('Next material') : t('Continue')}
             </button>
           )}
           {phase === 'time' && (
             <>
               <button type="button" onClick={() => continueFromTime(true)} className={buttonClass}>
-                Skip time
+                {t('Skip time')}
               </button>
               <button type="button" onClick={() => continueFromTime()} className="min-h-[48px] rounded-lg bg-primary px-5 font-label text-label-md text-on-primary">
-                Continue
+                {t('Continue')}
               </button>
             </>
           )}
           {phase === 'expenses' && (
             <>
               <button type="button" onClick={() => { setExpenses([]); calculate([]) }} className={buttonClass}>
-                Skip other costs
+                {t('Skip other costs')}
               </button>
               <button type="button" disabled={working} onClick={() => calculate()} className="min-h-[48px] rounded-lg bg-primary px-5 font-label text-label-md text-on-primary disabled:opacity-60">
-                {working ? 'Working it out...' : expenses.length ? 'See my estimate' : 'No other costs — see my estimate'}
+                {working ? t('Working it out...') : expenses.length ? t('See my estimate') : t('No other costs — see my estimate')}
               </button>
             </>
           )}

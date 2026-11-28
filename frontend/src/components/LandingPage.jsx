@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { Brand, Icon, LanguageButton } from './SiteNavigation.jsx'
@@ -6,8 +7,12 @@ import ListingImage from './ListingImage.jsx'
 
 import { getListings } from '../api/listings.js'
 import { getEvents } from '../api/events.js'
+import { imageUrl } from '../api/client.js'
 import { errorMessage } from '../api/errors.js'
 import { EVENT_CATEGORIES, formatEventWhen, formatPrice, labelOf } from '../constants.js'
+import i18n from '../i18n.js'
+
+const t = (key, options) => i18n.t(key, options)
 
 const modules = [
   {
@@ -182,13 +187,13 @@ function ProductCard({ listing }) {
             {formatPrice(listing.price)}
             {listing.packSize && (
               <span className="block text-right font-body text-sm text-on-surface-variant">
-                per {listing.packSize}
+                {t('per {{packSize}}', { packSize: listing.packSize })}
               </span>
             )}
           </span>
         </div>
         <p className="font-body text-body-md text-on-surface-variant">
-          By {listing.seller?.name} · {listing.location || listing.seller?.location}
+          {t('By {{name}}', { name: listing.seller?.name })} · {listing.location || listing.seller?.location}
         </p>
       </div>
       <Link
@@ -196,7 +201,7 @@ function ProductCard({ listing }) {
         className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label-lg text-on-primary transition-colors duration-state-change hover:opacity-95"
       >
         <Icon>visibility</Icon>
-        View Product
+        {t('View Product')}
       </Link>
     </article>
   )
@@ -204,7 +209,7 @@ function ProductCard({ listing }) {
 
 function ProductGrid({ state, className }) {
   if (state.loading)
-    return <p className="font-body text-body-md text-on-surface-variant">Loading products...</p>
+    return <p className="font-body text-body-md text-on-surface-variant">{t('Loading products...')}</p>
   if (state.error)
     return (
       <p role="alert" className="font-body text-body-md text-error">
@@ -214,7 +219,7 @@ function ProductGrid({ state, className }) {
   if (state.listings.length === 0)
     return (
       <p className="font-body text-body-md text-on-surface-variant">
-        No products yet. Check back soon!
+        {t('No products yet. Check back soon!')}
       </p>
     )
   return (
@@ -233,10 +238,10 @@ function DesktopProducts() {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
         <div className="flex flex-col gap-2">
           <h2 className="font-headline text-headline-lg text-on-surface">
-            Trending handmade products
+            {t('Trending handmade products')}
           </h2>
           <p className="font-body text-body-lg text-on-surface-variant">
-            Freshly made by women in your community.
+            {t('Freshly made by women in your community.')}
           </p>
         </div>
         <ProductGrid
@@ -253,7 +258,7 @@ function MobileProducts() {
   return (
     <section id="shop-mobile" className="flex flex-col gap-4 px-4">
       <h2 className="font-headline text-headline-lg-mobile text-on-surface">
-        Trending handmade
+        {t('Trending handmade')}
       </h2>
       <ProductGrid state={state} className="grid grid-cols-1 gap-4" />
     </section>
@@ -268,27 +273,26 @@ function DesktopHero() {
       <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 lg:grid-cols-12">
         <div className="flex flex-col gap-6 lg:col-span-6">
           <h1 className="text-balance font-display text-display-lg text-on-surface">
-            Turn your skill into your business
+            {t('Turn your skill into your business')}
           </h1>
           <p className="max-w-prose text-pretty font-body text-body-lg text-on-surface-variant">
-            A warm, simple marketplace where women makers sell handmade crafts and
-            food, keep track of their earnings, connect with other makers.
+            {t('A warm, simple marketplace where women makers sell handmade crafts and food, keep track of their earnings, connect with other makers.')}
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <AppLink href="/register" className="hero-action bg-cta text-on-cta">
               <Icon>storefront</Icon>
-              I want to Sell
+              {t('I want to Sell')}
             </AppLink>
             <a href="#shop" className="hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
-              I want to Buy
+              {t('I want to Buy')}
             </a>
           </div>
           <p className="flex items-center gap-2 font-body text-body-md text-on-surface-variant">
             <Icon className="text-success" filled>
               verified
             </Icon>
-            <span>Free to join. No confusing forms—start with just one photo.</span>
+            <span>{t('Free to join. No confusing forms—start with just one photo.')}</span>
           </p>
         </div>
         <div className="lg:col-span-6">
@@ -308,11 +312,11 @@ function DesktopHero() {
 function SearchField({ placeholder, className }) {
   return (
     <label className="relative flex w-full items-center">
-      <span className="sr-only">Search handmade products</span>
+      <span className="sr-only">{t('Search handmade products')}</span>
       <Icon className="absolute left-4 text-on-surface-variant">search</Icon>
       <input
         type="search"
-        placeholder={placeholder}
+        placeholder={t(placeholder)}
         className={`w-full font-body text-on-surface outline-none placeholder:text-outline ${className}`}
       />
     </label>
@@ -332,20 +336,19 @@ function MobileHero() {
         </div>
         <div className="flex flex-col gap-4">
           <h1 className="text-balance font-display text-display-lg-mobile text-on-surface">
-            Turn your skill into your business
+            {t('Turn your skill into your business')}
           </h1>
           <p className="text-pretty font-body text-body-md text-on-surface-variant">
-            Sell your handmade crafts and food, track your money easily, and grow
-            with supportive women.
+            {t('Sell your handmade crafts and food, track your money easily, and grow with supportive women.')}
           </p>
           <div className="flex flex-col gap-3 pt-1">
             <AppLink href="/register" className="mobile-hero-action bg-cta text-on-cta">
               <Icon>storefront</Icon>
-              I want to Sell
+              {t('I want to Sell')}
             </AppLink>
             <a href="#shop-mobile" className="mobile-hero-action bg-primary text-on-primary">
               <Icon>shopping_bag</Icon>
-              I want to Buy
+              {t('I want to Buy')}
             </a>
           </div>
         </div>
@@ -370,11 +373,11 @@ function SectionHeading({ title, description, mobile = false }) {
           mobile ? 'text-headline-lg-mobile' : 'text-headline-lg'
         }`}
       >
-        {title}
+        {t(title)}
       </h2>
       {description && (
         <p className="text-pretty font-body text-body-lg text-on-surface-variant">
-          {description}
+          {t(description)}
         </p>
       )}
     </div>
@@ -386,8 +389,8 @@ function StepsSection() {
     <section className="bg-surface-container-low py-16">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
         <SectionHeading
-          title="How HerMarket works"
-          description="Three easy steps to share your craft and earn from home."
+          title={t('How HerMarket works')}
+          description={t('Three easy steps to share your craft and earn from home.')}
         />
         <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-3">
           {steps.map((step) => (
@@ -400,9 +403,9 @@ function StepsSection() {
               >
                 <Icon className="text-headline-sm">{step.icon}</Icon>
               </span>
-              <h3 className="font-headline text-title-lg text-on-surface">{step.title}</h3>
+              <h3 className="font-headline text-title-lg text-on-surface">{t(step.title)}</h3>
               <p className="text-pretty font-body text-body-md text-on-surface-variant">
-                {step.description}
+                {t(step.description)}
               </p>
             </article>
           ))}
@@ -421,8 +424,8 @@ function ModulesSection({ mobile = false }) {
       {!mobile && (
         <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
           <SectionHeading
-            title="Everything you need in one place"
-            description="Each part of HerMarket has its own color so you always know where you are."
+            title={t('Everything you need in one place')}
+            description={t('Each part of HerMarket has its own color so you always know where you are.')}
           />
           <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
             {modules.map((item) => (
@@ -437,11 +440,11 @@ function ModulesSection({ mobile = false }) {
                   >
                     <Icon className="text-headline-sm">{item.icon}</Icon>
                   </span>
-                  <h3 className="font-headline text-title-lg">{item.title}</h3>
-                  <p className="text-pretty font-body text-body-md">{item.description}</p>
+                  <h3 className="font-headline text-title-lg">{t(item.title)}</h3>
+                  <p className="text-pretty font-body text-body-md">{t(item.description)}</p>
                 </div>
                 <span className="inline-flex items-center gap-1 font-label text-label-lg">
-                  {item.action}
+                  {t(item.action)}
                   <Icon>arrow_forward</Icon>
                 </span>
               </a>
@@ -452,7 +455,7 @@ function ModulesSection({ mobile = false }) {
       {mobile && (
         <>
           <h2 className="font-headline text-headline-lg-mobile text-on-surface">
-            Explore HerMarket
+            {t('Explore HerMarket')}
           </h2>
           <div className="grid grid-cols-1 gap-4">
             {modules.map((item) => (
@@ -467,8 +470,8 @@ function ModulesSection({ mobile = false }) {
                   <Icon>{item.icon}</Icon>
                 </span>
                 <span className="flex flex-col">
-                  <span className="font-headline text-title-lg">{item.title}</span>
-                  <span className="font-body text-body-md">{item.mobileDescription}</span>
+                  <span className="font-headline text-title-lg">{t(item.title)}</span>
+                  <span className="font-body text-body-md">{t(item.mobileDescription)}</span>
                 </span>
               </a>
             ))}
@@ -485,7 +488,7 @@ function MakerCard({ maker }) {
       <div className="flex items-center gap-4">
         <img
           src={maker.image}
-          alt={maker.alt}
+          alt={t(maker.alt)}
           className={`h-20 w-20 shrink-0 rounded-full border-2 border-${maker.border} object-cover`}
         />
         <div className="flex flex-col gap-1">
@@ -496,7 +499,7 @@ function MakerCard({ maker }) {
             </Icon>
           </div>
           <p className="font-body text-body-md text-on-surface-variant">
-            {maker.category} · {maker.location}
+            {t(maker.category)} · {maker.location}
           </p>
           <p className="flex items-center gap-1 font-label text-label-md tabular-nums text-on-surface">
             <Icon className="text-title-md text-cta" filled>
@@ -506,12 +509,12 @@ function MakerCard({ maker }) {
           </p>
         </div>
       </div>
-      <p className="text-pretty font-body text-body-md text-on-surface-variant">{maker.quote}</p>
+      <p className="text-pretty font-body text-body-md text-on-surface-variant">{t(maker.quote)}</p>
       <a
         href={maker.href}
         className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary-container px-4 font-label text-label-lg text-on-primary-container transition-opacity duration-state-change hover:opacity-90"
       >
-        Visit Shop
+        {t('Visit Shop')}
         <Icon>arrow_forward</Icon>
       </a>
     </article>
@@ -523,8 +526,8 @@ function MakersSection() {
     <section className="bg-surface py-16">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
         <SectionHeading
-          title="Meet our featured makers"
-          description="Verified women-led shops crafting with care across local neighborhoods."
+          title={t('Meet our featured makers')}
+          description={t('Verified women-led shops crafting with care across local neighborhoods.')}
         />
         <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-3">
           {makers.map((maker) => (
@@ -541,14 +544,14 @@ function StoryCard({ story }) {
     <article className="flex h-full flex-col items-start gap-6 rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm sm:flex-row">
       <img
         src={story.image}
-        alt={story.alt}
+        alt={t(story.alt)}
         className="h-28 w-28 shrink-0 rounded-lg object-cover"
       />
       <div className="flex flex-col gap-3">
-        <p className="text-pretty font-body text-body-lg text-on-surface">{story.quote}</p>
+        <p className="text-pretty font-body text-body-lg text-on-surface">{t(story.quote)}</p>
         <div>
           <p className="font-headline text-title-md text-primary">{story.name}</p>
-          <p className="font-body text-body-md text-on-surface-variant">{story.detail}</p>
+          <p className="font-body text-body-md text-on-surface-variant">{t(story.detail)}</p>
         </div>
       </div>
     </article>
@@ -560,8 +563,8 @@ function StoriesSection() {
     <section className="bg-surface-container-low py-16">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6">
         <SectionHeading
-          title="Stories from women like you"
-          description="Real makers turning everyday skills into steady income."
+          title={t('Stories from women like you')}
+          description={t('Real makers turning everyday skills into steady income.')}
         />
         <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
           {stories.map((story) => (
@@ -588,10 +591,10 @@ function EventBanner({ event, error, mobile = false }) {
           }`}
         >
           {error
-            ? 'Upcoming events are unavailable right now.'
-            : 'No upcoming events have been posted yet.'}{' '}
+            ? t('Upcoming events are unavailable right now.')
+            : t('No upcoming events have been posted yet.')}{' '}
           <AppLink href="/events" className="font-label text-primary underline">
-            Browse all events
+            {t('Browse all events')}
           </AppLink>
         </div>
       </section>
@@ -628,14 +631,14 @@ function EventBanner({ event, error, mobile = false }) {
               <p className="font-label text-label-md">
                 {formatEventWhen(event.startDate, event.endDate)}
                 {' · '}
-                {labelOf(EVENT_CATEGORIES, event.category)}
+                {t(labelOf(EVENT_CATEGORIES, event.category))}
               </p>
               {!mobile && (
                 <p className="text-pretty font-body text-body-lg">
                   {summary ||
                     (event.isOnline
-                      ? 'Join this upcoming online event.'
-                      : `Join us at ${event.location}.`)}
+                      ? t('Join this upcoming online event.')
+                      : t('Join us at {{location}}.', { location: event.location }))}
                 </p>
               )}
             </div>
@@ -643,13 +646,13 @@ function EventBanner({ event, error, mobile = false }) {
           {mobile ? (
             <>
               <p className="font-body text-body-md">
-                {event.isOnline ? 'Online event' : event.location}
+                {event.isOnline ? t('Online event') : event.location}
               </p>
               <AppLink
                 href={`/events/${event._id}`}
                 className="flex min-h-[48px] w-full items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest font-label text-label-lg text-on-surface"
               >
-                View event
+                {t('View event')}
               </AppLink>
             </>
           ) : (
@@ -658,7 +661,7 @@ function EventBanner({ event, error, mobile = false }) {
               className="inline-flex min-h-[52px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-6 py-3 font-label text-label-lg text-on-surface shadow-sm transition-colors duration-state-change hover:bg-surface-container-low"
             >
               <Icon>calendar_month</Icon>
-              View event
+              {t('View event')}
             </AppLink>
           )}
         </div>
@@ -688,13 +691,13 @@ function EventPopup({ event, onClose }) {
         aria-modal="true"
         aria-labelledby="home-event-title"
         aria-describedby="home-event-description"
-        className="relative w-full max-w-lg rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl sm:p-7"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl sm:p-7"
       >
         <button
           type="button"
           autoFocus
           onClick={onClose}
-          aria-label="Close event announcement"
+          aria-label={t('Close event announcement')}
           className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-on-surface hover:bg-surface-container-low"
         >
           <Icon>close</Icon>
@@ -704,23 +707,32 @@ function EventPopup({ event, onClose }) {
             <Icon className="text-headline-sm">event</Icon>
           </span>
           <span className="rounded-full bg-secondary-container px-3 py-1 font-label text-label-md text-on-secondary-container">
-            Upcoming event
+            {t('Upcoming event')}
           </span>
         </div>
+        {event.images?.[0] && (
+          <div className="mt-5 flex h-48 w-full items-center justify-center overflow-hidden rounded-lg bg-surface-container-low sm:h-56">
+            <img
+              src={imageUrl(event.images[0])}
+              alt={t('Poster for {{title}}', { title: event.title })}
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+        )}
         <h2 id="home-event-title" className="mt-5 font-headline text-headline-md text-on-surface">
           {event.title}
         </h2>
         <p className="mt-2 font-label text-label-md text-primary">
           {formatEventWhen(event.startDate, event.endDate)}
           {' · '}
-          {labelOf(EVENT_CATEGORIES, event.category)}
+          {t(labelOf(EVENT_CATEGORIES, event.category))}
         </p>
         <p className="mt-2 font-body text-body-md text-on-surface-variant">
-          {event.isOnline ? 'Online event' : event.location}
-          {event.organizer?.name ? ` · Hosted by ${event.organizer.name}` : ''}
+          {event.isOnline ? t('Online event') : event.location}
+          {event.organizer?.name ? ` · ${t('Hosted by')} ${event.organizer.name}` : ''}
         </p>
         <p id="home-event-description" className="mt-4 font-body text-body-md text-on-surface">
-          {event.description || 'Open the event page for details and registration information.'}
+          {event.description || t('Open the event page for details and registration information.')}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
@@ -728,14 +740,14 @@ function EventPopup({ event, onClose }) {
             onClick={onClose}
             className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-primary px-5 font-label text-label-md text-on-primary"
           >
-            View event details
+            {t('View event details')}
           </Link>
           <button
             type="button"
             onClick={onClose}
             className="min-h-12 rounded-lg border border-outline-variant px-5 font-label text-label-md text-primary"
           >
-            Maybe later
+            {t('Maybe later')}
           </button>
         </div>
       </section>
@@ -751,11 +763,10 @@ function OrganizationBanner() {
       <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-8 px-6 md:flex-row md:items-center">
         <div className="flex max-w-2xl flex-col gap-3">
           <h2 className="text-balance font-headline text-headline-lg">
-            Are you an NGO, cooperative, or community group?
+            {t('Are you an NGO, cooperative, or community group?')}
           </h2>
           <p className="text-pretty font-body text-body-lg text-primary-container">
-            Partner with HerMarket to onboard women makers in your district,
-            host local training workshops, and sponsor zero-fee starter shops.
+            {t('Partner with HerMarket to onboard women makers in your district, host local training workshops, and sponsor zero-fee starter shops.')}
           </p>
         </div>
         <AppLink
@@ -763,7 +774,7 @@ function OrganizationBanner() {
           className="inline-flex min-h-[56px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-cta px-8 py-3 font-label text-label-lg text-on-cta shadow-md transition-colors duration-state-change hover:opacity-95"
         >
           <Icon>handshake</Icon>
-          Partner With Us
+          {t('Partner With Us')}
         </AppLink>
       </div>
     </section>
@@ -777,33 +788,32 @@ function DesktopFooter() {
         <div className="flex flex-col gap-3">
           <Brand compact />
           <p className="text-pretty font-body text-body-md text-on-surface-variant">
-            Helping women turn everyday handmade skills into confident local
-            businesses.
+            {t('Helping women turn everyday handmade skills into confident local businesses.')}
           </p>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="font-headline text-title-md text-on-surface">Marketplace</h3>
           <a href="#about" className="footer-link">
-            About HerMarket
+            {t('About HerMarket')}
           </a>
           <a href="#shop" className="footer-link">
-            Browse Products
+            {t('Browse Products')}
           </a>
           <AppLink href="/events" className="footer-link">
-            Community Events
+            {t('Community Events')}
           </AppLink>
           <AppLink href="/register" className="footer-link">
-            For Organizations
+            {t('For Organizations')}
           </AppLink>
         </div>
         <div className="flex flex-col gap-2">
-          <h3 className="font-headline text-title-md text-on-surface">Support</h3>
+          <h3 className="font-headline text-title-md text-on-surface">{t('Support')}</h3>
           <a href="#help" className="footer-link">
-            Help Center
+            {t('Help Center')}
           </a>
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="font-headline text-title-md text-on-surface">Language & Community</h3>
+          <h3 className="font-headline text-title-md text-on-surface">{t('Language & Community')}</h3>
           <LanguageButton />
           <div className="flex items-center gap-3 pt-1">
             {[
@@ -814,7 +824,7 @@ function DesktopFooter() {
               <AppLink
                 key={href}
                 href={href}
-                aria-label={label}
+                aria-label={t(label)}
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-primary-container"
               >
                 <Icon>{icon}</Icon>
@@ -843,7 +853,7 @@ function HelpButton({ mobile = false }) {
         }`}
       >
         <Icon>support_agent</Icon>
-        Need help?
+        {t('Need help?')}
       </button>
     </div>
   )
@@ -885,6 +895,7 @@ function MobilePage({ event, eventError }) {
 }
 
 function LandingPage() {
+  useTranslation()
   const { event, error } = useUpcomingEvent()
   const [dismissedId, setDismissedId] = useState(() =>
     window.sessionStorage.getItem(POPUP_KEY),

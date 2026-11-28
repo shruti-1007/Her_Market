@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { errorMessage } from '../../api/errors.js'
 import { getMySellerProfile } from '../../api/sellers.js'
@@ -12,6 +13,7 @@ const sections = [
 ]
 
 export default function SellerProfileSidebar({ activeTab, onTabChange }) {
+  const { t } = useTranslation()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -36,7 +38,7 @@ export default function SellerProfileSidebar({ activeTab, onTabChange }) {
   }, [editing])
 
   if (loading) {
-    return <p className="font-body text-body-md text-on-surface-variant">Loading your profile...</p>
+    return <p className="font-body text-body-md text-on-surface-variant">{t('Loading your profile...')}</p>
   }
 
   if (error) {
@@ -72,7 +74,7 @@ export default function SellerProfileSidebar({ activeTab, onTabChange }) {
           </div>
         </div>
 
-        <nav aria-label="Seller dashboard" className="grid grid-cols-3 gap-1 p-2 sm:gap-2 sm:p-3 lg:flex lg:flex-col">
+        <nav aria-label={t('Seller dashboard')} className="grid grid-cols-3 gap-1 p-2 sm:gap-2 sm:p-3 lg:flex lg:flex-col">
           {sections.map(([key, label, icon]) => (
             <button
               key={key}
@@ -86,7 +88,7 @@ export default function SellerProfileSidebar({ activeTab, onTabChange }) {
               }`}
             >
               <span className="material-symbols-outlined text-title-md" aria-hidden="true">{icon}</span>
-              {label}
+              {t(label)}
             </button>
           ))}
         </nav>
@@ -94,11 +96,11 @@ export default function SellerProfileSidebar({ activeTab, onTabChange }) {
         <div className="grid grid-cols-1 gap-2 border-t border-outline-variant p-3 sm:grid-cols-2 lg:grid-cols-1 lg:p-4">
           <Link to={`/sellers/${profile.id}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 font-label text-label-md text-primary transition-colors hover:bg-primary-container">
             <span className="material-symbols-outlined text-title-md" aria-hidden="true">open_in_new</span>
-            View public profile
+            {t('View public profile')}
           </Link>
           <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-cta px-4 font-label text-label-md text-on-cta shadow-sm transition-colors hover:opacity-90">
             <span className="material-symbols-outlined text-title-md" aria-hidden="true">edit</span>
-            Edit profile
+            {t('Edit profile')}
           </button>
         </div>
       </aside>
@@ -113,10 +115,10 @@ export default function SellerProfileSidebar({ activeTab, onTabChange }) {
           <section role="dialog" aria-modal="true" aria-labelledby="seller-profile-dialog-title" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-xl sm:p-8">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="font-label text-label-md uppercase tracking-wide text-primary">Your shop</p>
-                <h2 id="seller-profile-dialog-title" className="mt-1 font-headline text-headline-lg-mobile text-on-surface">Edit seller profile</h2>
+                <p className="font-label text-label-md uppercase tracking-wide text-primary">{t('Your shop')}</p>
+                <h2 id="seller-profile-dialog-title" className="mt-1 font-headline text-headline-lg-mobile text-on-surface">{t('Edit seller profile')}</h2>
               </div>
-              <button type="button" aria-label="Close profile editor" onClick={() => setEditing(false)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface">
+              <button type="button" aria-label={t('Close profile editor')} onClick={() => setEditing(false)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface">
                 <span className="material-symbols-outlined" aria-hidden="true">close</span>
               </button>
             </div>
