@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Organization = require("../models/Organization");
 
-const USER_FIELDS = "name email location contact description createdAt";
+const USER_FIELDS = "name email location contact description profileImage createdAt";
 
 // GET /api/admin/organizations?status=pending|verified|rejected
 exports.listOrganizations = async (req, res) => {

@@ -11,7 +11,7 @@ const validationErrors = (err) =>
   err.name === "ValidationError" ? Object.values(err.errors).map((e) => e.message) : null;
 const clean = (v) => (v === undefined || v === null || String(v).trim() === "" ? undefined : v);
 const populateEvent = (q) =>
-  q.populate("organizer", "name location contact description")
+  q.populate("organizer", "name location contact description profileImage")
    .populate("organization", "type website verificationStatus");
 
 const FIELDS = ["title", "description", "category", "startDate", "endDate", "isOnline",
